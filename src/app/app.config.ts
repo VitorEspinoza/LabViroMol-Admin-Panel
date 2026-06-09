@@ -4,6 +4,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
+import { ConfirmationService } from 'primeng/api';
 import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -21,6 +22,7 @@ export const appConfig: ApplicationConfig = {
       return firstValueFrom(auth.loadCurrentUser().pipe(catchError(() => of(null))));
     }),
     provideAnimations(),
+    ConfirmationService,
     providePrimeNG({
       theme: {
         preset: Aura,

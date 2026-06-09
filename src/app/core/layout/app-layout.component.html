@@ -1,0 +1,24 @@
+<app-confirm-dialog />
+
+<app-sidebar
+  [collapsed]="sidebarCollapsed()"
+  (toggleCollapse)="sidebarCollapsed.update(v => !v)"
+/>
+
+@if (!sidebarCollapsed()) {
+  <div
+    class="fixed inset-0 bg-black/30 z-20 md:hidden"
+    (click)="sidebarCollapsed.set(true)"
+    aria-hidden="true"
+  ></div>
+}
+
+<app-topbar [sidebarCollapsed]="sidebarCollapsed()" />
+
+<main
+  [class]="sidebarCollapsed()
+    ? 'pt-16 min-h-screen bg-background p-4 ml-16 md:p-6 transition-all duration-300 ease-in-out'
+    : 'pt-16 min-h-screen bg-background p-4 ml-16 md:ml-64 md:p-6 transition-all duration-300 ease-in-out'"
+>
+  <router-outlet />
+</main>

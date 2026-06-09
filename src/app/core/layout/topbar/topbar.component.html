@@ -1,0 +1,34 @@
+<header [class]="headerClasses()">
+  <div class="flex items-center gap-3 min-w-0">
+    @if (pageTitle()) {
+      <h1 class="text-base font-semibold text-foreground truncate">{{ pageTitle() }}</h1>
+    }
+  </div>
+
+  <div class="flex items-center gap-1">
+    <p-button
+      icon="pi pi-bell"
+      [text]="true"
+      severity="secondary"
+      [rounded]="true"
+      aria-label="Notificações"
+    />
+
+    <button
+      type="button"
+      class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted
+             transition-colors cursor-pointer ml-1"
+      (click)="openUserMenu($event)"
+      aria-label="Menu do usuário"
+      aria-haspopup="true"
+    >
+      <p-avatar [label]="userInitials()" shape="circle" size="normal" />
+      <span class="hidden lg:block text-sm font-medium text-foreground max-w-32 truncate">
+        {{ userFullName() }}
+      </span>
+      <i class="pi pi-chevron-down text-xs text-muted-foreground" aria-hidden="true"></i>
+    </button>
+
+    <p-menu #userMenu [model]="menuItems()" [popup]="true" appendTo="body" />
+  </div>
+</header>

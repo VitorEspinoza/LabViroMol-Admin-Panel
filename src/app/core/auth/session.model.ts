@@ -5,3 +5,21 @@ export interface SessionUser {
   lastName: string;
   permissions: string[];
 }
+
+export interface ApiMeResponse {
+  id: string;
+  userData: {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string | null;
+    emergencyContactNumber: string | null;
+  };
+  isActive: boolean;
+  roles: string[];
+}
+
+export interface ApiRoleResponse {
+  id: string;
+  name: string;
+  permissions: string[];
+}

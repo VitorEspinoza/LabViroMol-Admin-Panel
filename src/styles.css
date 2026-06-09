@@ -2,3 +2,13 @@
 @import 'primeicons/primeicons.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #3c83f6;
+  --color-background: #f9fafb;
+  --color-foreground: #0f1729;
+  --color-border: #e3e7ed;
+  --color-muted: #f3f5f6;
+  --color-card: #ffffff;
+  --color-muted-foreground: #64748b;
+}
