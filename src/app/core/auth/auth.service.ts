@@ -1,15 +1,16 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { SessionUser } from './session.model';
+import { ApiMeResponse, ApiRoleResponse, SessionUser } from './session.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly base = `${environment.apiUrl}/api/identity/users`;
+  private readonly usersBase = `${environment.apiUrl}/api/identity/users`;
+  private readonly rolesBase = `${environment.apiUrl}/api/identity/roles`;
 
   readonly currentUser = signal<SessionUser | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
@@ -28,33 +29,49 @@ export class AuthService {
   }
 
   loadCurrentUser(): Observable<void> {
-    return this.http.get<SessionUser>(`${this.base}/me`).pipe(
+    return this.http.get<ApiMeResponse>(`${this.usersBase}/me`).pipe(
+      switchMap(me =>
+        this.http.get<ApiRoleResponse[]>(this.rolesBase).pipe(
+          map(roles => {
+            const userRoleSet = new Set(me.roles);
+            const permissions = [
+              ...new Set(
+                roles
+                  .filter(r => userRoleSet.has(r.name))
+                  .flatMap(r => r.permissions),
+              ),
+            ];
+            return this.mapSessionUser(me, permissions);
+          }),
+          catchError(() => of(this.mapSessionUser(me, []))),
+        ),
+      ),
       tap(user => this.currentUser.set(user)),
       map(() => undefined),
     );
   }
 
   login(email: string, password: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/login`, { email, password }).pipe(
+    return this.http.post<void>(`${this.usersBase}/login`, { email, password }).pipe(
       switchMap(() => this.loadCurrentUser()),
       tap(() => this.router.navigate(['/dashboard'])),
     );
   }
 
   forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/forgot-password`, { email });
+    return this.http.post<void>(`${this.usersBase}/forgot-password`, { email });
   }
 
   resetPassword(email: string, token: string, newPassword: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/reset-password`, { email, token, newPassword });
+    return this.http.post<void>(`${this.usersBase}/reset-password`, { email, token, newPassword });
   }
 
   refresh(): Observable<void> {
-    return this.http.post<void>(`${this.base}/refresh`, {});
+    return this.http.post<void>(`${this.usersBase}/refresh`, {});
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.base}/logout`, {}).pipe(
+    return this.http.post<void>(`${this.usersBase}/logout`, {}).pipe(
       tap(() => {
         this.clearSession();
         this.router.navigate(['/login']);
@@ -64,5 +81,15 @@ export class AuthService {
 
   clearSession(): void {
     this.currentUser.set(null);
+  }
+
+  private mapSessionUser(me: ApiMeResponse, permissions: string[]): SessionUser {
+    return {
+      userId: me.id,
+      firstName: me.userData.firstName,
+      lastName: me.userData.lastName,
+      email: '',
+      permissions,
+    };
   }
 }

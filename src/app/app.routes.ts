@@ -1,13 +1,21 @@
 import { Routes } from '@angular/router';
 import { authGuard, redirectIfAuthenticatedGuard } from './core/auth/auth.guard';
+import { AppLayoutComponent } from './core/layout/app-layout.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
-    path: 'dashboard',
+    path: '',
+    component: AppLayoutComponent,
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        data: { title: 'Dashboard' },
+      },
+    ],
   },
   {
     path: 'login',

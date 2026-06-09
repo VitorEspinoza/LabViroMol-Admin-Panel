@@ -1,17 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { AuthService } from './auth.service';
-import { SessionUser } from './session.model';
+import { ApiMeResponse, ApiRoleResponse, SessionUser } from './session.model';
 
-const mockUser: SessionUser = {
+const mockMeResponse: ApiMeResponse = {
+  id: 'user-1',
+  userData: { firstName: 'Ana', lastName: 'Silva', phoneNumber: null, emergencyContactNumber: null },
+  isActive: true,
+  roles: ['Admin'],
+};
+
+const mockRoles: ApiRoleResponse[] = [
+  { id: 'role-1', name: 'Admin', permissions: ['Research.Projects.View', 'Inventory.Materials.Manage'] },
+];
+
+const expectedUser: SessionUser = {
   userId: 'user-1',
-  email: 'ana@lab.com',
   firstName: 'Ana',
   lastName: 'Silva',
+  email: '',
   permissions: ['Research.Projects.View', 'Inventory.Materials.Manage'],
 };
 
@@ -37,23 +47,36 @@ describe('AuthService', () => {
   afterEach(() => controller.verify());
 
   describe('loadCurrentUser', () => {
-    it('deve popular o signal currentUser com os dados retornados pelo /me', () => {
+    it('deve popular o signal currentUser com os dados mapeados de /me e /roles', () => {
       service.loadCurrentUser().subscribe();
-      const req = controller.expectOne(r => r.url.includes('/users/me'));
-      req.flush(mockUser);
-      expect(service.currentUser()).toEqual(mockUser);
+
+      controller.expectOne(r => r.url.includes('/users/me')).flush(mockMeResponse);
+      controller.expectOne(r => r.url.includes('/roles')).flush(mockRoles);
+
+      expect(service.currentUser()).toEqual(expectedUser);
     });
 
     it('deve definir isAuthenticated como true após carregar usuário', () => {
       service.loadCurrentUser().subscribe();
-      controller.expectOne(r => r.url.includes('/users/me')).flush(mockUser);
+      controller.expectOne(r => r.url.includes('/users/me')).flush(mockMeResponse);
+      controller.expectOne(r => r.url.includes('/roles')).flush(mockRoles);
+
       expect(service.isAuthenticated()).toBe(true);
+    });
+
+    it('deve popular permissões vazias quando /roles falha', () => {
+      service.loadCurrentUser().subscribe();
+      controller.expectOne(r => r.url.includes('/users/me')).flush(mockMeResponse);
+      controller.expectOne(r => r.url.includes('/roles')).flush('', { status: 403, statusText: 'Forbidden' });
+
+      expect(service.currentUser()?.permissions).toEqual([]);
+      expect(service.currentUser()?.firstName).toBe('Ana');
     });
   });
 
   describe('hasPermission', () => {
     beforeEach(() => {
-      service.currentUser.set(mockUser);
+      service.currentUser.set(expectedUser);
     });
 
     it('deve retornar true para permissão diretamente atribuída', () => {
@@ -80,7 +103,7 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('deve chamar POST /logout, limpar sessão e redirecionar para /login', () => {
-      service.currentUser.set(mockUser);
+      service.currentUser.set(expectedUser);
       service.logout().subscribe();
       controller.expectOne(r => r.url.includes('/users/logout') && r.method === 'POST').flush(null);
       expect(service.currentUser()).toBeNull();
@@ -90,7 +113,7 @@ describe('AuthService', () => {
 
   describe('clearSession', () => {
     it('deve limpar o signal currentUser', () => {
-      service.currentUser.set(mockUser);
+      service.currentUser.set(expectedUser);
       service.clearSession();
       expect(service.currentUser()).toBeNull();
     });
