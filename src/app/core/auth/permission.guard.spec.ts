@@ -22,28 +22,27 @@ describe('permissionGuard', () => {
 
   it('deve permitir acesso quando usuário tem a permissão', () => {
     authMock.hasPermission.mockReturnValue(true);
-    const guard = TestBed.runInInjectionContext(() =>
-      permissionGuard('Research.Projects.View'),
+    const result = TestBed.runInInjectionContext(() =>
+      permissionGuard('Research.Projects.View')({} as any, {} as any),
     );
-    expect(guard({} as any, {} as any)).toBe(true);
+    expect(result).toBe(true);
     expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
   it('deve bloquear e redirecionar para /unauthorized quando sem permissão', () => {
     authMock.hasPermission.mockReturnValue(false);
-    const guard = TestBed.runInInjectionContext(() =>
-      permissionGuard('Research.Projects.Manage'),
+    const result = TestBed.runInInjectionContext(() =>
+      permissionGuard('Research.Projects.Manage')({} as any, {} as any),
     );
-    expect(guard({} as any, {} as any)).toBe(false);
+    expect(result).toBe(false);
     expect(routerMock.navigate).toHaveBeenCalledWith(['/unauthorized']);
   });
 
   it('deve passar a permissão correta para hasPermission', () => {
     authMock.hasPermission.mockReturnValue(true);
-    const guard = TestBed.runInInjectionContext(() =>
-      permissionGuard('Inventory.Materials.Manage'),
+    TestBed.runInInjectionContext(() =>
+      permissionGuard('Inventory.Materials.Manage')({} as any, {} as any),
     );
-    guard({} as any, {} as any);
     expect(authMock.hasPermission).toHaveBeenCalledWith('Inventory.Materials.Manage');
   });
 });

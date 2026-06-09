@@ -15,6 +15,9 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
+        if (!auth.isAuthenticated()) {
+          return throwError(() => error);
+        }
         return auth.refresh().pipe(
           switchMap(() => next(req.clone({ withCredentials: true }))),
           catchError(() => {
