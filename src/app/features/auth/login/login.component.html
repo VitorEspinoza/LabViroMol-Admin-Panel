@@ -1,0 +1,59 @@
+<div class="flex min-h-screen items-center justify-center bg-[#f9fafb] px-4">
+  <div class="w-full max-w-md rounded-lg border border-[#e3e7ed] bg-white p-8 shadow-sm">
+
+    <h1 class="mb-6 text-2xl font-semibold tracking-tight text-[#0f1729]">Entrar</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onLogin()" class="flex flex-col gap-4" novalidate>
+
+      <div class="flex flex-col gap-1">
+        <label for="email" class="text-sm font-medium text-[#0f1729]">E-mail</label>
+        <input
+          pInputText
+          id="email"
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          placeholder="voce@laboratorio.com"
+          class="w-full"
+        />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <span class="text-xs text-red-500">Informe um e-mail válido.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="password" class="text-sm font-medium text-[#0f1729]">Senha</label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (form.get('password')?.invalid && form.get('password')?.touched) {
+          <span class="text-xs text-red-500">Informe a senha.</span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p-message severity="error" [text]="errorMessage()" styleClass="w-full" />
+      }
+
+      <p-button
+        type="submit"
+        label="Entrar"
+        styleClass="w-full"
+        [loading]="loading()"
+      />
+
+      <a
+        routerLink="/forgot-password"
+        class="text-center text-sm text-[#3c83f6] hover:underline"
+      >
+        Esqueci minha senha
+      </a>
+
+    </form>
+  </div>
+</div>

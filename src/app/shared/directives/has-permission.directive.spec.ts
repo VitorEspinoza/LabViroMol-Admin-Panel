@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HasPermissionDirective } from './has-permission.directive';
@@ -15,9 +15,11 @@ class TestHostComponent {}
 describe('HasPermissionDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let authMock: { hasPermission: ReturnType<typeof vi.fn> };
+  let permissionGranted: WritableSignal<boolean>;
 
   beforeEach(async () => {
-    authMock = { hasPermission: vi.fn() };
+    permissionGranted = signal(false);
+    authMock = { hasPermission: vi.fn().mockImplementation(() => permissionGranted()) };
 
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
@@ -28,7 +30,7 @@ describe('HasPermissionDirective', () => {
   });
 
   it('deve renderizar o elemento quando usuário tem a permissão', () => {
-    authMock.hasPermission.mockReturnValue(true);
+    permissionGranted.set(true);
     fixture.detectChanges();
     const el = fixture.nativeElement.querySelector('[data-testid="protected"]');
     expect(el).not.toBeNull();
@@ -36,18 +38,18 @@ describe('HasPermissionDirective', () => {
   });
 
   it('deve remover o elemento quando usuário não tem a permissão', () => {
-    authMock.hasPermission.mockReturnValue(false);
+    permissionGranted.set(false);
     fixture.detectChanges();
     const el = fixture.nativeElement.querySelector('[data-testid="protected"]');
     expect(el).toBeNull();
   });
 
   it('deve atualizar o elemento quando a permissão muda reativamente', () => {
-    authMock.hasPermission.mockReturnValue(false);
+    permissionGranted.set(false);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="protected"]')).toBeNull();
 
-    authMock.hasPermission.mockReturnValue(true);
+    permissionGranted.set(true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="protected"]')).not.toBeNull();
   });

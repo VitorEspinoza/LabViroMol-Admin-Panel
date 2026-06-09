@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { map, Observable, tap } from 'rxjs';
+import { map, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SessionUser } from './session.model';
 
@@ -32,6 +32,21 @@ export class AuthService {
       tap(user => this.currentUser.set(user)),
       map(() => undefined),
     );
+  }
+
+  login(email: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/login`, { email, password }).pipe(
+      switchMap(() => this.loadCurrentUser()),
+      tap(() => this.router.navigate(['/dashboard'])),
+    );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/forgot-password`, { email });
+  }
+
+  resetPassword(email: string, token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/reset-password`, { email, token, newPassword });
   }
 
   refresh(): Observable<void> {

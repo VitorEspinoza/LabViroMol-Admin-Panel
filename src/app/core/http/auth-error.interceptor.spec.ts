@@ -10,13 +10,14 @@ import { authErrorInterceptor } from './auth-error.interceptor';
 describe('authErrorInterceptor', () => {
   let http: HttpClient;
   let controller: HttpTestingController;
-  let authMock: Mocked<Pick<AuthService, 'refresh' | 'clearSession'>>;
+  let authMock: Mocked<Pick<AuthService, 'refresh' | 'clearSession'>> & { isAuthenticated: ReturnType<typeof vi.fn> };
   let routerMock: Mocked<Pick<Router, 'navigate'>>;
 
   beforeEach(() => {
-    authMock = { refresh: vi.fn(), clearSession: vi.fn() };
+    authMock = { refresh: vi.fn(), clearSession: vi.fn(), isAuthenticated: vi.fn() };
     routerMock = { navigate: vi.fn() };
     authMock.refresh.mockReturnValue(of(undefined));
+    authMock.isAuthenticated.mockReturnValue(true);
 
     TestBed.configureTestingModule({
       providers: [
@@ -80,6 +81,20 @@ describe('authErrorInterceptor', () => {
 
     expect(routerMock.navigate).toHaveBeenCalledWith(['/unauthorized']);
     expect(authMock.refresh).not.toHaveBeenCalled();
+  });
+
+  it('não deve tentar refresh quando usuário não está autenticado em 401', () => {
+    authMock.isAuthenticated.mockReturnValue(false);
+
+    let caughtError: unknown;
+    http.get('/api/recurso').subscribe({ error: err => (caughtError = err) });
+
+    const req = controller.expectOne('/api/recurso');
+    req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authMock.refresh).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect((caughtError as { status: number }).status).toBe(401);
   });
 
   it('deve propagar outros erros HTTP sem intervenção', () => {
