@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SessionUser } from './session.model';
 
@@ -30,7 +30,8 @@ export class AuthService {
   loadCurrentUser(): Observable<void> {
     return this.http.get<SessionUser>(`${this.base}/me`).pipe(
       tap(user => this.currentUser.set(user)),
-    ) as unknown as Observable<void>;
+      map(() => undefined),
+    );
   }
 
   refresh(): Observable<void> {
