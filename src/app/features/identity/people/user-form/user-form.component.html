@@ -8,6 +8,11 @@
   (onShow)="onDialogShow()"
 >
   <form [formGroup]="form" novalidate>
+    @if (loadingUser()) {
+      <div class="flex items-center justify-center py-12">
+        <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground" aria-hidden="true"></i>
+      </div>
+    } @else {
     <p-tabs value="identity">
       <p-tablist>
         <p-tab value="identity">Identidade</p-tab>
@@ -72,14 +77,15 @@
             </div>
 
             <div class="flex flex-col gap-1">
-              <label for="roleId" class="text-sm font-medium">Perfil</label>
-              <p-select
-                inputId="roleId"
-                formControlName="roleId"
+              <label for="roleIds" class="text-sm font-medium">Perfis</label>
+              <p-multiselect
+                inputId="roleIds"
+                formControlName="roleIds"
                 [options]="roles()"
                 optionLabel="name"
                 optionValue="roleId"
-                placeholder="Selecione o perfil"
+                placeholder="Selecione os perfis"
+                display="chip"
                 styleClass="w-full"
                 [showClear]="true"
               />
@@ -116,22 +122,33 @@
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
+    }
   </form>
 
   <ng-template #footer>
     <div class="flex justify-end gap-2">
-      <p-button
-        label="Cancelar"
-        [outlined]="true"
-        severity="secondary"
-        (onClick)="onCancel()"
-        [disabled]="saving()"
-      />
-      <p-button
-        label="Salvar"
-        [loading]="saving()"
-        (onClick)="onSave()"
-      />
+      @if (readOnly()) {
+        <p-button
+          label="Fechar"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="onCancel()"
+        />
+      } @else {
+        <p-button
+          label="Cancelar"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="onCancel()"
+          [disabled]="saving()"
+        />
+        <p-button
+          label="Salvar"
+          [loading]="saving()"
+          [disabled]="loadingUser()"
+          (onClick)="onSave()"
+        />
+      }
     </div>
   </ng-template>
 </p-dialog>

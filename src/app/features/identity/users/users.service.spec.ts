@@ -3,20 +3,28 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { UsersService } from './users.service';
-import { User, CreateUserRequest, CreateUserResponse, UpdateUserRequest } from '../../../shared/models/user.model';
+import { CreateUserRequest, CreateUserResponse, UpdateUserRequest } from '../../../shared/models/user.model';
 import { PagedResponse } from '../../../shared/models/pagination.model';
 
-const mockUser: User = {
-  userId: 'u1',
-  firstName: 'Ana',
-  lastName: 'Silva',
+const mockApiUserSummary = {
+  id: 'u1',
+  fullName: 'Ana Silva',
   email: 'ana@example.com',
-  phoneNumber: null,
-  emergencyContactNumber: null,
   isActive: true,
-  deactivatedAt: null,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
+  roles: ['Admin'],
+};
+
+const mockApiUserProfile = {
+  id: 'u1',
+  userData: {
+    firstName: 'Ana',
+    lastName: 'Silva',
+    phoneNumber: null,
+    emergencyContactName: null,
+    emergencyContactNumber: null,
+  },
+  isActive: true,
+  roles: ['Admin'],
 };
 
 describe('UsersService', () => {
@@ -33,9 +41,9 @@ describe('UsersService', () => {
 
   afterEach(() => http.verify());
 
-  it('getUsers — mapeia PagedResponse corretamente', () => {
-    const response: PagedResponse<User> = {
-      data: [mockUser],
+  it('getUsers — mapeia id para userId e mantém paginação', () => {
+    const response: PagedResponse<typeof mockApiUserSummary> = {
+      data: [mockApiUserSummary],
       currentPage: 1,
       pageSize: 10,
       totalPages: 1,
@@ -45,6 +53,8 @@ describe('UsersService', () => {
     service.getUsers({ pageNumber: 1, pageSize: 10 }).subscribe(res => {
       expect(res.data.length).toBe(1);
       expect(res.data[0].userId).toBe('u1');
+      expect(res.data[0].fullName).toBe('Ana Silva');
+      expect(res.data[0].email).toBe('ana@example.com');
       expect(res.totalCount).toBe(1);
     });
 
@@ -54,13 +64,15 @@ describe('UsersService', () => {
     req.flush(response);
   });
 
-  it('getUserById — retorna usuário correto', () => {
+  it('getUserById — mapeia id para userId e achata userData', () => {
     service.getUserById('u1').subscribe(user => {
       expect(user.userId).toBe('u1');
-      expect(user.email).toBe('ana@example.com');
+      expect(user.firstName).toBe('Ana');
+      expect(user.lastName).toBe('Silva');
+      expect(user.roles).toEqual(['Admin']);
     });
 
-    http.expectOne('http://localhost:5085/api/identity/users/u1').flush(mockUser);
+    http.expectOne('http://localhost:5085/api/identity/users/u1').flush(mockApiUserProfile);
   });
 
   it('createUser — retorna userId e resetToken', () => {

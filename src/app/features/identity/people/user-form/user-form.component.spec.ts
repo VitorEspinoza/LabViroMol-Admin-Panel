@@ -1,27 +1,27 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { UserFormComponent } from './user-form.component';
 import { UsersService } from '../../users/users.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { User, CreateUserResponse } from '../../../../shared/models/user.model';
 import { Role } from '../../../../shared/models/role.model';
 
 const mockRole: Role = { roleId: 'r1', name: 'Admin', permissions: [] };
+const mockRole2: Role = { roleId: 'r2', name: 'Coordenador', permissions: [] };
 
 const mockUser: User = {
   userId: 'u1',
+  fullName: 'Ana Silva',
   firstName: 'Ana',
   lastName: 'Silva',
   email: 'ana@lab.com',
   phoneNumber: null,
   emergencyContactNumber: null,
   isActive: true,
-  deactivatedAt: null,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
   roles: ['Admin'],
 };
 
@@ -37,16 +37,20 @@ describe('UserFormComponent', () => {
   });
   let fixture: ComponentFixture<UserFormComponent>;
   let component: UserFormComponent;
-  let usersServiceMock: Mocked<Pick<UsersService, 'createUser' | 'updateUser'>>;
+  let usersServiceMock: Mocked<Pick<UsersService, 'createUser' | 'updateUser' | 'getUserById'>>;
   let messageServiceMock: Mocked<Pick<MessageService, 'add'>>;
+  let authServiceMock: { hasPermission: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     usersServiceMock = {
       createUser: vi.fn(),
       updateUser: vi.fn(),
+      getUserById: vi.fn(),
     };
 
     messageServiceMock = { add: vi.fn() };
+
+    authServiceMock = { hasPermission: vi.fn().mockReturnValue(true) };
 
     await TestBed.configureTestingModule({
       imports: [UserFormComponent],
@@ -54,6 +58,7 @@ describe('UserFormComponent', () => {
         provideNoopAnimations(),
         { provide: UsersService, useValue: usersServiceMock },
         { provide: MessageService, useValue: messageServiceMock },
+        { provide: AuthService, useValue: authServiceMock },
       ],
     }).compileComponents();
 
@@ -134,38 +139,69 @@ describe('UserFormComponent', () => {
 
       expect(form.get('email').errors?.['serverError']).toBe('E-mail já está em uso.');
     });
+
+    it('exibe o cabeçalho "Nova Pessoa"', () => {
+      expect((component as any).dialogHeader()).toBe('Nova Pessoa');
+    });
   });
 
   describe('modo edição', () => {
     beforeEach(() => {
+      usersServiceMock.getUserById.mockReturnValue(of(mockUser));
       fixture.componentRef.setInput('user', mockUser);
-      fixture.componentRef.setInput('roles', [mockRole]);
+      fixture.componentRef.setInput('roles', [mockRole, mockRole2]);
       fixture.detectChanges();
       (component as any).onDialogShow();
+    });
+
+    it('busca os dados completos do usuário via getUserById', () => {
+      expect(usersServiceMock.getUserById).toHaveBeenCalledWith('u1');
     });
 
     it('campo email está desabilitado', () => {
       expect((component as any).form.get('email').disabled).toBe(true);
     });
 
-    it('preenche o formulário com dados do usuário', () => {
+    it('preenche o formulário com os dados retornados pelo getUserById', () => {
       const form = (component as any).form;
       expect(form.get('firstName').value).toBe('Ana');
       expect(form.get('lastName').value).toBe('Silva');
+    });
+
+    it('preenche roleIds com os IDs dos perfis correspondentes aos nomes retornados', () => {
+      const form = (component as any).form;
+      expect(form.get('roleIds').value).toEqual(['r1']);
+    });
+
+    it('exibe o cabeçalho "Editar Pessoa"', () => {
+      expect((component as any).dialogHeader()).toBe('Editar Pessoa');
     });
 
     it('chama updateUser com roleIds corretos', () => {
       usersServiceMock.updateUser.mockReturnValue(of(undefined));
 
       const form = (component as any).form;
-      form.get('firstName').enable();
-      form.patchValue({ roleId: 'r1' });
+      form.patchValue({ roleIds: ['r1'] });
 
       (component as any).onSave();
 
       expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
         'u1',
         expect.objectContaining({ roleIds: ['r1'] }),
+      );
+    });
+
+    it('permite selecionar múltiplos perfis e envia todos no roleIds', () => {
+      usersServiceMock.updateUser.mockReturnValue(of(undefined));
+
+      const form = (component as any).form;
+      form.patchValue({ roleIds: ['r1', 'r2'] });
+
+      (component as any).onSave();
+
+      expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
+        'u1',
+        expect.objectContaining({ roleIds: ['r1', 'r2'] }),
       );
     });
 
@@ -188,6 +224,61 @@ describe('UserFormComponent', () => {
       expect(messageServiceMock.add).toHaveBeenCalledWith(
         expect.objectContaining({ severity: 'success' }),
       );
+    });
+  });
+
+  describe('carregamento dos dados ao abrir o diálogo', () => {
+    it('define loadingUser como true durante a busca e false após retorno', () => {
+      const subject = new Subject<User>();
+      usersServiceMock.getUserById.mockReturnValue(subject.asObservable());
+      fixture.componentRef.setInput('user', mockUser);
+      fixture.componentRef.setInput('roles', [mockRole]);
+      fixture.detectChanges();
+
+      (component as any).onDialogShow();
+      expect((component as any).loadingUser()).toBe(true);
+
+      subject.next(mockUser);
+      subject.complete();
+
+      expect((component as any).loadingUser()).toBe(false);
+    });
+
+    it('exibe mensagem de erro quando getUserById falha', () => {
+      usersServiceMock.getUserById.mockReturnValue(throwError(() => ({ status: 500 })));
+      fixture.componentRef.setInput('user', mockUser);
+      fixture.componentRef.setInput('roles', [mockRole]);
+      fixture.detectChanges();
+
+      (component as any).onDialogShow();
+
+      expect((component as any).loadingUser()).toBe(false);
+      expect(messageServiceMock.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: 'error' }),
+      );
+    });
+  });
+
+  describe('modo somente leitura (sem Identity.Users.Manage)', () => {
+    beforeEach(() => {
+      authServiceMock.hasPermission.mockReturnValue(false);
+      usersServiceMock.getUserById.mockReturnValue(of(mockUser));
+      fixture.componentRef.setInput('user', mockUser);
+      fixture.componentRef.setInput('roles', [mockRole]);
+      fixture.detectChanges();
+      (component as any).onDialogShow();
+    });
+
+    it('readOnly retorna true', () => {
+      expect((component as any).readOnly()).toBe(true);
+    });
+
+    it('desabilita todos os campos do formulário', () => {
+      expect((component as any).form.disabled).toBe(true);
+    });
+
+    it('exibe o cabeçalho "Visualizar Pessoa"', () => {
+      expect((component as any).dialogHeader()).toBe('Visualizar Pessoa');
     });
   });
 

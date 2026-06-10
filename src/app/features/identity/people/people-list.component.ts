@@ -55,7 +55,7 @@ export class PeopleListComponent {
     if (!q) return this.users();
     return this.users().filter(
       u =>
-        `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
+        u.fullName.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         (u.roles ?? []).some(r => r.toLowerCase().includes(q)),
     );
@@ -138,9 +138,5 @@ export class PeopleListComponent {
         });
       },
     });
-  }
-
-  protected getRoleName(user: User): string {
-    return (user.roles ?? [])[0] ?? '';
   }
 }

@@ -1,16 +1,14 @@
 export interface User {
   userId: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  phoneNumber: string | null;
+  phoneNumber?: string | null;
   emergencyContactName?: string | null;
-  emergencyContactNumber: string | null;
+  emergencyContactNumber?: string | null;
   roles?: string[];
   isActive: boolean;
-  deactivatedAt: string | null;
-  createdAt: string;
-  updatedAt: string | null;
 }
 
 export interface CreateUserRequest {

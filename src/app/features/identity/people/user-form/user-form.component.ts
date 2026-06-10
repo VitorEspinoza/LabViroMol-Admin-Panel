@@ -4,19 +4,20 @@ import { MessageService } from 'primeng/api';
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { MultiSelect } from 'primeng/multiselect';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
 import { UsersService } from '../../users/users.service';
 import { User, CreateUserRequest, UpdateUserRequest } from '../../../../shared/models/user.model';
 import { Role } from '../../../../shared/models/role.model';
 import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.directive';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-user-form',
   imports: [
     ReactiveFormsModule,
-    Dialog, Button, InputText, Select,
+    Dialog, Button, InputText, MultiSelect,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     PhoneMaskDirective,
   ],
@@ -31,40 +32,72 @@ export class UserFormComponent {
   private readonly usersService = inject(UsersService);
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
 
   protected readonly saving = signal(false);
+  protected readonly loadingUser = signal(false);
   protected readonly isEditing = computed(() => this.user() !== null);
-  protected readonly dialogHeader = computed(() =>
-    this.isEditing() ? 'Editar Pessoa' : 'Nova Pessoa',
-  );
+  protected readonly canManage = computed(() => this.auth.hasPermission('Identity.Users.Manage'));
+  protected readonly readOnly = computed(() => this.isEditing() && !this.canManage());
+  protected readonly dialogHeader = computed(() => {
+    if (!this.isEditing()) return 'Nova Pessoa';
+    return this.readOnly() ? 'Visualizar Pessoa' : 'Editar Pessoa';
+  });
 
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     phoneNumber: [''],
-    roleId: [''],
+    roleIds: this.fb.nonNullable.control<string[]>([]),
     emergencyContactName: [''],
     emergencyContactNumber: [''],
   });
 
   protected onDialogShow(): void {
     const u = this.user();
-    if (u) {
-      const matchingRole = this.roles().find(r => (u.roles ?? []).includes(r.name));
-      this.form.patchValue({
-        firstName: u.firstName,
-        lastName: u.lastName,
-        email: u.email,
-        phoneNumber: u.phoneNumber ?? '',
-        roleId: matchingRole?.roleId ?? '',
-        emergencyContactName: u.emergencyContactName ?? '',
-        emergencyContactNumber: u.emergencyContactNumber ?? '',
-      });
-      this.form.get('email')?.disable();
-    } else {
+    if (!u) {
       this.form.reset();
-      this.form.get('email')?.enable();
+      this.form.enable();
+      return;
+    }
+
+    this.loadingUser.set(true);
+    this.form.disable();
+    this.usersService.getUserById(u.userId).subscribe({
+      next: detail => {
+        const roleIds = this.roles()
+          .filter(r => (detail.roles ?? []).includes(r.name))
+          .map(r => r.roleId);
+        this.form.patchValue({
+          firstName: detail.firstName,
+          lastName: detail.lastName,
+          email: u.email,
+          phoneNumber: detail.phoneNumber ?? '',
+          roleIds,
+          emergencyContactName: detail.emergencyContactName ?? '',
+          emergencyContactNumber: detail.emergencyContactNumber ?? '',
+        });
+        this.loadingUser.set(false);
+        this.applyFormState();
+      },
+      error: () => {
+        this.loadingUser.set(false);
+        this.applyFormState();
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível carregar os dados do usuário.',
+        });
+      },
+    });
+  }
+
+  private applyFormState(): void {
+    this.form.enable();
+    this.form.get('email')?.disable();
+    if (this.readOnly()) {
+      this.form.disable();
     }
   }
 
@@ -84,7 +117,7 @@ export class UserFormComponent {
         phoneNumber: value.phoneNumber || undefined,
         emergencyContactName: value.emergencyContactName || undefined,
         emergencyContactNumber: value.emergencyContactNumber || undefined,
-        roleIds: value.roleId ? [value.roleId] : [],
+        roleIds: value.roleIds,
       };
       this.saving.set(true);
       this.usersService.updateUser(editingUser.userId, body).subscribe({

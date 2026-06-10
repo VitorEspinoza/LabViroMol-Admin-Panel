@@ -14,15 +14,13 @@ import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const makeUser = (overrides: Partial<User> = {}): User => ({
   userId: 'u1',
+  fullName: 'Ana Silva',
   firstName: 'Ana',
   lastName: 'Silva',
   email: 'ana@lab.com',
   phoneNumber: null,
   emergencyContactNumber: null,
   isActive: true,
-  deactivatedAt: null,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
   roles: ['Admin'],
   ...overrides,
 });
@@ -149,8 +147,8 @@ describe('PeopleListComponent', () => {
   });
 
   describe('filteredUsers', () => {
-    const user1 = makeUser({ userId: 'u1', firstName: 'Ana', lastName: 'Silva', email: 'ana@lab.com', roles: ['Admin'] });
-    const user2 = makeUser({ userId: 'u2', firstName: 'Bruno', lastName: 'Costa', email: 'bruno@lab.com', roles: ['Viewer'] });
+    const user1 = makeUser({ userId: 'u1', fullName: 'Ana Silva', email: 'ana@lab.com', roles: ['Admin'] });
+    const user2 = makeUser({ userId: 'u2', fullName: 'Bruno Costa', email: 'bruno@lab.com', roles: ['Viewer'] });
 
     beforeEach(() => {
       (component as any).users.set([user1, user2]);
@@ -182,6 +180,59 @@ describe('PeopleListComponent', () => {
     it('retorna lista vazia quando não há correspondência', () => {
       (component as any).searchQuery.set('xyznotfound');
       expect((component as any).filteredUsers().length).toBe(0);
+    });
+  });
+
+  describe('coluna Perfil', () => {
+    it('exibe uma tag para cada perfil do usuário', () => {
+      (component as any).users.set([makeUser({ roles: ['Admin', 'Coordenador'] })]);
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelectorAll('p-tag').length).toBe(2);
+    });
+
+    it('exibe travessão quando o usuário não possui perfis', () => {
+      (component as any).users.set([makeUser({ roles: [] })]);
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelectorAll('p-tag').length).toBe(0);
+      expect(compiled.textContent).toContain('—');
+    });
+  });
+
+  describe('coluna Nome', () => {
+    it('aplica truncate com tooltip exibindo o fullName completo', () => {
+      (component as any).users.set([makeUser({ fullName: 'Ana Maria de Souza Silva' })]);
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      const nameCell = compiled.querySelector('td span.truncate') as HTMLElement;
+      expect(nameCell.textContent?.trim()).toBe('Ana Maria de Souza Silva');
+      expect(nameCell.getAttribute('title')).toBe('Ana Maria de Souza Silva');
+    });
+  });
+
+  describe('ações da tabela', () => {
+    it('exibe botão de editar (lápis) quando possui Identity.Users.Manage', () => {
+      authServiceMock.hasPermission.mockReturnValue(true);
+      (component as any).users.set([makeUser()]);
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelector('.pi-pencil')).toBeTruthy();
+      expect(compiled.querySelector('.pi-eye')).toBeFalsy();
+    });
+
+    it('exibe botão de visualizar (olho) quando não possui Identity.Users.Manage', () => {
+      authServiceMock.hasPermission.mockReturnValue(false);
+      (component as any).users.set([makeUser()]);
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelector('.pi-eye')).toBeTruthy();
+      expect(compiled.querySelector('.pi-pencil')).toBeFalsy();
     });
   });
 });
