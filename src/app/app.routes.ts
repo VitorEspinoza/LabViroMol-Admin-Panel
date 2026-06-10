@@ -25,6 +25,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Pessoas' },
       },
+      {
+        path: 'identity/perfis',
+        canActivate: [permissionGuard('Identity.Roles.View')],
+        loadComponent: () =>
+          import('./features/identity/roles/roles-list.component').then(
+            m => m.RolesListComponent,
+          ),
+        data: { title: 'Perfis' },
+      },
     ],
   },
   {
