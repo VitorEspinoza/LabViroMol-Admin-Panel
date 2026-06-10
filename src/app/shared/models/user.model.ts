@@ -4,7 +4,9 @@ export interface User {
   lastName: string;
   email: string;
   phoneNumber: string | null;
+  emergencyContactName?: string | null;
   emergencyContactNumber: string | null;
+  roles?: string[];
   isActive: boolean;
   deactivatedAt: string | null;
   createdAt: string;
@@ -16,6 +18,7 @@ export interface CreateUserRequest {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  emergencyContactName?: string;
   emergencyContactNumber?: string;
 }
 
@@ -29,6 +32,7 @@ export interface UpdateUserRequest {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  emergencyContactName?: string;
   emergencyContactNumber?: string;
   roleIds: string[];
 }
@@ -37,5 +41,6 @@ export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+  emergencyContactName?: string;
   emergencyContactNumber?: string;
 }

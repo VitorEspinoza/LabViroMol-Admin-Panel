@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, redirectIfAuthenticatedGuard } from './core/auth/auth.guard';
+import { permissionGuard } from './core/auth/permission.guard';
 import { AppLayoutComponent } from './core/layout/app-layout.component';
 
 export const routes: Routes = [
@@ -14,6 +15,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
         data: { title: 'Dashboard' },
+      },
+      {
+        path: 'identity/pessoas',
+        canActivate: [permissionGuard('Identity.Users.View')],
+        loadComponent: () =>
+          import('./features/identity/people/people-list.component').then(
+            m => m.PeopleListComponent,
+          ),
+        data: { title: 'Pessoas' },
       },
     ],
   },

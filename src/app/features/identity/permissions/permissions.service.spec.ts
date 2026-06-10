@@ -31,13 +31,13 @@ describe('PermissionsService', () => {
       expect(res.length).toBe(4);
     });
 
-    const req = http.expectOne('/api/identity/permissions');
+    const req = http.expectOne('http://localhost:5085/api/identity/permissions');
     expect(req.request.method).toBe('GET');
     req.flush(permissions);
   });
 
   it('getPermissions — retorna lista vazia sem erro', () => {
     service.getPermissions().subscribe(res => expect(res).toEqual([]));
-    http.expectOne('/api/identity/permissions').flush([]);
+    http.expectOne('http://localhost:5085/api/identity/permissions').flush([]);
   });
 });

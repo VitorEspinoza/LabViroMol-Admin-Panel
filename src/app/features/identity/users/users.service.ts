@@ -2,13 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.model';
 import { User, CreateUserRequest, CreateUserResponse, UpdateUserRequest } from '../../../shared/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/identity/users';
+  private readonly base = `${environment.apiUrl}/api/identity/users`;
 
   getUsers(params: PagedRequest): Observable<PagedResponse<User>> {
     let httpParams = new HttpParams();

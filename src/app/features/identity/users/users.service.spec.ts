@@ -48,7 +48,7 @@ describe('UsersService', () => {
       expect(res.totalCount).toBe(1);
     });
 
-    const req = http.expectOne(r => r.url === '/api/identity/users');
+    const req = http.expectOne(r => r.url === 'http://localhost:5085/api/identity/users');
     expect(req.request.params.get('pageNumber')).toBe('1');
     expect(req.request.params.get('pageSize')).toBe('10');
     req.flush(response);
@@ -60,7 +60,7 @@ describe('UsersService', () => {
       expect(user.email).toBe('ana@example.com');
     });
 
-    http.expectOne('/api/identity/users/u1').flush(mockUser);
+    http.expectOne('http://localhost:5085/api/identity/users/u1').flush(mockUser);
   });
 
   it('createUser — retorna userId e resetToken', () => {
@@ -76,7 +76,7 @@ describe('UsersService', () => {
       expect(res.resetToken).toBe('tok123');
     });
 
-    const req = http.expectOne('/api/identity/users');
+    const req = http.expectOne('http://localhost:5085/api/identity/users');
     expect(req.request.method).toBe('POST');
     req.flush(responseBody);
   });
@@ -92,7 +92,7 @@ describe('UsersService', () => {
       },
     });
 
-    http.expectOne('/api/identity/users').flush(
+    http.expectOne('http://localhost:5085/api/identity/users').flush(
       { errors: { email: ['Email inválido.'] } },
       { status: 400, statusText: 'Bad Request' },
     );
@@ -110,7 +110,7 @@ describe('UsersService', () => {
       },
     });
 
-    http.expectOne('/api/identity/users').flush(
+    http.expectOne('http://localhost:5085/api/identity/users').flush(
       { error: 'E-mail já está em uso.' },
       { status: 409, statusText: 'Conflict' },
     );
@@ -127,7 +127,7 @@ describe('UsersService', () => {
 
     service.updateUser('u1', body).subscribe();
 
-    const req = http.expectOne('/api/identity/users/u1');
+    const req = http.expectOne('http://localhost:5085/api/identity/users/u1');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body.roleIds).toEqual(['r1']);
     req.flush(null);
@@ -143,7 +143,7 @@ describe('UsersService', () => {
 
     service.updateUser('u1', body).subscribe();
 
-    const req = http.expectOne('/api/identity/users/u1');
+    const req = http.expectOne('http://localhost:5085/api/identity/users/u1');
     expect(req.request.body.roleIds).toEqual([]);
     req.flush(null);
   });
@@ -151,7 +151,7 @@ describe('UsersService', () => {
   it('deactivateUser — envia POST para /deactivate', () => {
     service.deactivateUser('u1').subscribe();
 
-    const req = http.expectOne('/api/identity/users/u1/deactivate');
+    const req = http.expectOne('http://localhost:5085/api/identity/users/u1/deactivate');
     expect(req.request.method).toBe('POST');
     req.flush(null);
   });
@@ -159,7 +159,7 @@ describe('UsersService', () => {
   it('reactivateUser — envia POST para /reactivate', () => {
     service.reactivateUser('u1').subscribe();
 
-    const req = http.expectOne('/api/identity/users/u1/reactivate');
+    const req = http.expectOne('http://localhost:5085/api/identity/users/u1/reactivate');
     expect(req.request.method).toBe('POST');
     req.flush(null);
   });

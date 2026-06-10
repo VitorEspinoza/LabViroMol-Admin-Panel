@@ -1,0 +1,102 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-6">
+  <app-page-header title="Pessoas" subtitle="Gerenciamento de usuários e dados acadêmicos">
+    <ng-container actions>
+      @if (auth.hasPermission('Identity.Users.Manage')) {
+        <p-button label="Nova Pessoa" icon="pi pi-plus" (onClick)="openCreate()" />
+      }
+    </ng-container>
+  </app-page-header>
+
+  <div class="flex items-center gap-3">
+    <p-iconfield class="w-full max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por nome, e-mail ou perfil..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+  </div>
+
+  <p-table
+    [value]="filteredUsers()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadUsers($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th class="hidden md:table-cell">Tel. Emergência</th>
+        <th class="hidden md:table-cell">Contato Emergência</th>
+        <th>Perfil</th>
+        <th>Ativo</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>
+          <span class="font-semibold">{{ user.firstName }} {{ user.lastName }}</span>
+        </td>
+        <td>{{ user.email }}</td>
+        <td class="hidden md:table-cell">
+          <span class="font-mono text-sm">{{ user.emergencyContactNumber ?? '—' }}</span>
+        </td>
+        <td class="hidden md:table-cell">{{ user.emergencyContactName ?? '—' }}</td>
+        <td>
+          @if (getRoleName(user)) {
+            <p-tag [value]="getRoleName(user)" severity="info" />
+          } @else {
+            <span class="text-sm text-muted-foreground">—</span>
+          }
+        </td>
+        <td>
+          <p-toggleswitch
+            [ngModel]="user.isActive"
+            [disabled]="user.userId === auth.currentUser()?.userId"
+            (onChange)="toggleActive(user)"
+          />
+        </td>
+        <td>
+          @if (auth.hasPermission('Identity.Users.Manage')) {
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="openEdit(user)"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center py-8 text-muted-foreground">
+          Nenhum usuário encontrado.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-user-form
+  [(visible)]="dialogVisible"
+  [user]="selectedUser()"
+  [roles]="roles()"
+  (saved)="onFormSaved()"
+/>

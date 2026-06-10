@@ -32,14 +32,14 @@ describe('RolesService', () => {
       expect(roles[0].permissions).toContain('Identity.Users.View');
     });
 
-    const req = http.expectOne('/api/identity/roles');
+    const req = http.expectOne('http://localhost:5085/api/identity/roles');
     expect(req.request.method).toBe('GET');
     req.flush([mockRole]);
   });
 
   it('getRoles — retorna lista vazia sem erro', () => {
     service.getRoles().subscribe(roles => expect(roles).toEqual([]));
-    http.expectOne('/api/identity/roles').flush([]);
+    http.expectOne('http://localhost:5085/api/identity/roles').flush([]);
   });
 
   it('createRole — envia POST e retorna role criada', () => {
@@ -53,7 +53,7 @@ describe('RolesService', () => {
       expect(role.name).toBe('Viewer');
     });
 
-    const req = http.expectOne('/api/identity/roles');
+    const req = http.expectOne('http://localhost:5085/api/identity/roles');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(body);
     req.flush({ roleId: 'r2', name: 'Viewer', permissions: ['Identity.Users.View'] });
@@ -64,7 +64,7 @@ describe('RolesService', () => {
 
     service.createRole(body).subscribe();
 
-    const req = http.expectOne('/api/identity/roles');
+    const req = http.expectOne('http://localhost:5085/api/identity/roles');
     expect(req.request.body.permissions).toEqual([]);
     req.flush({ roleId: 'r3', name: 'Empty', permissions: [] });
   });
