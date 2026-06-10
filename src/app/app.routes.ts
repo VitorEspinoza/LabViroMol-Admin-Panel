@@ -34,6 +34,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Perfis' },
       },
+      {
+        path: 'research/posicoes',
+        canActivate: [permissionGuard('Research.Positions.View')],
+        loadComponent: () =>
+          import('./features/research/positions/positions-list.component').then(
+            m => m.PositionsListComponent,
+          ),
+        data: { title: 'Posições no Laboratório' },
+      },
     ],
   },
   {
