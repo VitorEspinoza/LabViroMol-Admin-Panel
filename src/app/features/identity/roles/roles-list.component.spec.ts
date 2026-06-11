@@ -147,6 +147,54 @@ describe('RolesListComponent', () => {
       (component as any).openCreate();
 
       expect((component as any).dialogVisible()).toBe(true);
+      expect((component as any).selectedRole()).toBeNull();
+    });
+
+    it('limpa o perfil selecionado anteriormente', async () => {
+      rolesServiceMock = { getRoles: vi.fn().mockReturnValue(of([])) };
+      await setup();
+      fixture.detectChanges();
+
+      (component as any).openEdit(makeRole());
+      (component as any).openCreate();
+
+      expect((component as any).selectedRole()).toBeNull();
+    });
+  });
+
+  describe('openEdit', () => {
+    it('exibe o diálogo com o perfil selecionado', async () => {
+      const role = makeRole();
+      rolesServiceMock = { getRoles: vi.fn().mockReturnValue(of([role])) };
+      await setup();
+      fixture.detectChanges();
+
+      (component as any).openEdit(role);
+
+      expect((component as any).dialogVisible()).toBe(true);
+      expect((component as any).selectedRole()).toBe(role);
+    });
+  });
+
+  describe('botão de editar perfil', () => {
+    it('é exibido em cada card quando o usuário possui Identity.Roles.Manage', async () => {
+      rolesServiceMock = { getRoles: vi.fn().mockReturnValue(of([makeRole()])) };
+      authServiceMock.hasPermission.mockReturnValue(true);
+      await setup();
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelector('p-card .pi-pencil')).toBeTruthy();
+    });
+
+    it('é ocultado quando o usuário não possui Identity.Roles.Manage', async () => {
+      rolesServiceMock = { getRoles: vi.fn().mockReturnValue(of([makeRole()])) };
+      authServiceMock.hasPermission.mockReturnValue(false);
+      await setup();
+      fixture.detectChanges();
+
+      const compiled: HTMLElement = fixture.nativeElement;
+      expect(compiled.querySelector('p-card .pi-pencil')).toBeFalsy();
     });
   });
 

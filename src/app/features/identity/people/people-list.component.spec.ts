@@ -146,40 +146,48 @@ describe('PeopleListComponent', () => {
     });
   });
 
-  describe('filteredUsers', () => {
-    const user1 = makeUser({ userId: 'u1', fullName: 'Ana Silva', email: 'ana@lab.com', roles: ['Admin'] });
-    const user2 = makeUser({ userId: 'u2', fullName: 'Bruno Costa', email: 'bruno@lab.com', roles: ['Viewer'] });
-
+  describe('busca server-side', () => {
     beforeEach(() => {
-      (component as any).users.set([user1, user2]);
+      vi.useFakeTimers();
     });
 
-    it('retorna todos quando busca está vazia', () => {
-      (component as any).searchQuery.set('');
-      expect((component as any).filteredUsers().length).toBe(2);
+    afterEach(() => {
+      vi.useRealTimers();
     });
 
-    it('filtra por nome', () => {
-      (component as any).searchQuery.set('ana');
-      expect((component as any).filteredUsers().length).toBe(1);
-      expect((component as any).filteredUsers()[0].userId).toBe('u1');
+    it('envia o termo de busca para getUsers após o debounce', () => {
+      usersServiceMock.getUsers.mockClear();
+
+      (component as any).onSearchInput({ target: { value: 'ana' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(usersServiceMock.getUsers).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'ana',
+      });
     });
 
-    it('filtra por e-mail', () => {
-      (component as any).searchQuery.set('bruno@');
-      expect((component as any).filteredUsers().length).toBe(1);
-      expect((component as any).filteredUsers()[0].userId).toBe('u2');
+    it('reseta para a primeira página ao buscar', () => {
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'bruno' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
     });
 
-    it('filtra por perfil (role)', () => {
-      (component as any).searchQuery.set('viewer');
-      expect((component as any).filteredUsers().length).toBe(1);
-      expect((component as any).filteredUsers()[0].userId).toBe('u2');
-    });
+    it('não envia o parâmetro search quando a busca está vazia', () => {
+      usersServiceMock.getUsers.mockClear();
 
-    it('retorna lista vazia quando não há correspondência', () => {
-      (component as any).searchQuery.set('xyznotfound');
-      expect((component as any).filteredUsers().length).toBe(0);
+      (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(usersServiceMock.getUsers).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+      });
     });
   });
 

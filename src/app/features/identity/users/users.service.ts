@@ -62,6 +62,7 @@ export class UsersService {
     let httpParams = new HttpParams();
     if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
     if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
+    if (params.search) httpParams = httpParams.set('search', params.search);
     return this.http.get<PagedResponse<ApiUserSummary>>(this.base, { params: httpParams }).pipe(
       map(res => ({ ...res, data: res.data.map(mapUserSummary) })),
     );

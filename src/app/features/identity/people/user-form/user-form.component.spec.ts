@@ -101,8 +101,10 @@ describe('UserFormComponent', () => {
 
       expect(usersServiceMock.createUser).toHaveBeenCalledWith(
         expect.objectContaining({
-          firstName: 'Carlos',
-          lastName: 'Mendes',
+          userData: expect.objectContaining({
+            firstName: 'Carlos',
+            lastName: 'Mendes',
+          }),
           email: 'carlos@lab.com',
         }),
       );
@@ -205,15 +207,20 @@ describe('UserFormComponent', () => {
       );
     });
 
-    it('usa o email original do usuário no body do update (ignora campo desabilitado)', () => {
+    it('envia userData com os dados de identidade, sem o e-mail (não suportado pelo PUT)', () => {
       usersServiceMock.updateUser.mockReturnValue(of(undefined));
 
       (component as any).onSave();
 
       expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
         'u1',
-        expect.objectContaining({ email: 'ana@lab.com' }),
+        expect.objectContaining({
+          userData: expect.objectContaining({ firstName: 'Ana', lastName: 'Silva' }),
+        }),
       );
+      const [, body] = usersServiceMock.updateUser.mock.calls[0];
+      expect((body as any).email).toBeUndefined();
+      expect((body as any).userData.email).toBeUndefined();
     });
 
     it('exibe mensagem de sucesso após edição', () => {

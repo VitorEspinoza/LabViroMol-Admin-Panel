@@ -11,13 +11,28 @@ export interface User {
   isActive: boolean;
 }
 
-export interface CreateUserRequest {
+export interface ResearchRegistrationData {
+  positionId: string;
+  degreeLevel: string;
+  fieldOfStudy: string;
+  lattesUrl?: string | null;
+  citationName?: string | null;
+  displayName?: string | null;
+}
+
+export interface UserInfo {
   firstName: string;
   lastName: string;
+  phoneNumber: string | null;
+  emergencyContactName: string | null;
+  emergencyContactNumber: string | null;
+  researchData: ResearchRegistrationData | null;
+}
+
+export interface CreateUserRequest {
+  userData: UserInfo;
   email: string;
-  phoneNumber?: string;
-  emergencyContactName?: string;
-  emergencyContactNumber?: string;
+  roleIds: string[];
 }
 
 export interface CreateUserResponse {
@@ -26,19 +41,10 @@ export interface CreateUserResponse {
 }
 
 export interface UpdateUserRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  emergencyContactName?: string;
-  emergencyContactNumber?: string;
+  userData: UserInfo;
   roleIds: string[];
 }
 
 export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  emergencyContactName?: string;
-  emergencyContactNumber?: string;
+  userData: UserInfo;
 }

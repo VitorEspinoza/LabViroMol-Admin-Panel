@@ -3,8 +3,18 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { UsersService } from './users.service';
-import { CreateUserRequest, CreateUserResponse, UpdateUserRequest } from '../../../shared/models/user.model';
+import { CreateUserRequest, CreateUserResponse, UpdateUserRequest, UserInfo } from '../../../shared/models/user.model';
 import { PagedResponse } from '../../../shared/models/pagination.model';
+
+const makeUserData = (overrides: Partial<UserInfo> = {}): UserInfo => ({
+  firstName: 'Ana',
+  lastName: 'Silva',
+  phoneNumber: null,
+  emergencyContactName: null,
+  emergencyContactNumber: null,
+  researchData: null,
+  ...overrides,
+});
 
 const mockApiUserSummary = {
   id: 'u1',
@@ -64,6 +74,22 @@ describe('UsersService', () => {
     req.flush(response);
   });
 
+  it('getUsers — envia o parâmetro search quando informado', () => {
+    service.getUsers({ pageNumber: 1, pageSize: 10, search: 'ana' }).subscribe();
+
+    const req = http.expectOne(r => r.url === 'http://localhost:5085/api/identity/users');
+    expect(req.request.params.get('search')).toBe('ana');
+    req.flush({ data: [], currentPage: 1, pageSize: 10, totalPages: 0, totalCount: 0 });
+  });
+
+  it('getUsers — não envia search quando vazio', () => {
+    service.getUsers({ pageNumber: 1, pageSize: 10 }).subscribe();
+
+    const req = http.expectOne(r => r.url === 'http://localhost:5085/api/identity/users');
+    expect(req.request.params.has('search')).toBe(false);
+    req.flush({ data: [], currentPage: 1, pageSize: 10, totalPages: 0, totalCount: 0 });
+  });
+
   it('getUserById — mapeia id para userId e achata userData', () => {
     service.getUserById('u1').subscribe(user => {
       expect(user.userId).toBe('u1');
@@ -77,9 +103,9 @@ describe('UsersService', () => {
 
   it('createUser — retorna userId e resetToken', () => {
     const body: CreateUserRequest = {
-      firstName: 'Ana',
-      lastName: 'Silva',
+      userData: makeUserData(),
       email: 'ana@example.com',
+      roleIds: [],
     };
     const responseBody: CreateUserResponse = { userId: 'u1', resetToken: 'tok123' };
 
@@ -94,7 +120,7 @@ describe('UsersService', () => {
   });
 
   it('createUser — propaga erro 400 (campos inválidos)', () => {
-    const body: CreateUserRequest = { firstName: '', lastName: '', email: 'bad' };
+    const body: CreateUserRequest = { userData: makeUserData({ firstName: '', lastName: '' }), email: 'bad', roleIds: [] };
     let caught = false;
 
     service.createUser(body).subscribe({
@@ -112,7 +138,7 @@ describe('UsersService', () => {
   });
 
   it('createUser — propaga erro 409 (e-mail duplicado)', () => {
-    const body: CreateUserRequest = { firstName: 'Ana', lastName: 'Silva', email: 'ana@example.com' };
+    const body: CreateUserRequest = { userData: makeUserData(), email: 'ana@example.com', roleIds: [] };
     let caught = false;
 
     service.createUser(body).subscribe({
@@ -131,9 +157,14 @@ describe('UsersService', () => {
 
   it('updateUser — envia PUT com corpo correto', () => {
     const body: UpdateUserRequest = {
-      firstName: 'Ana',
-      lastName: 'Costa',
-      email: 'ana@example.com',
+      userData: {
+        firstName: 'Ana',
+        lastName: 'Costa',
+        phoneNumber: null,
+        emergencyContactName: null,
+        emergencyContactNumber: null,
+        researchData: null,
+      },
       roleIds: ['r1'],
     };
 
@@ -142,14 +173,20 @@ describe('UsersService', () => {
     const req = http.expectOne('http://localhost:5085/api/identity/users/u1');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body.roleIds).toEqual(['r1']);
+    expect(req.request.body.userData.firstName).toBe('Ana');
     req.flush(null);
   });
 
   it('updateUser — aceita roleIds vazio', () => {
     const body: UpdateUserRequest = {
-      firstName: 'Ana',
-      lastName: 'Costa',
-      email: 'ana@example.com',
+      userData: {
+        firstName: 'Ana',
+        lastName: 'Costa',
+        phoneNumber: null,
+        emergencyContactName: null,
+        emergencyContactNumber: null,
+        researchData: null,
+      },
       roleIds: [],
     };
 

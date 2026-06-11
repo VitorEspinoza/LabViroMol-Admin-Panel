@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiMeResponse, ApiRoleResponse, SessionUser } from './session.model';
+import { UpdateProfileRequest } from '../../shared/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -48,6 +49,16 @@ export class AuthService {
       ),
       tap(user => this.currentUser.set(user)),
       map(() => undefined),
+    );
+  }
+
+  getMe(): Observable<ApiMeResponse> {
+    return this.http.get<ApiMeResponse>(`${this.usersBase}/me`);
+  }
+
+  updateProfile(body: UpdateProfileRequest): Observable<void> {
+    return this.http.put<void>(`${this.usersBase}/me`, body).pipe(
+      switchMap(() => this.loadCurrentUser()),
     );
   }
 

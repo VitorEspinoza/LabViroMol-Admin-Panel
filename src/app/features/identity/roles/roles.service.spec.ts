@@ -68,4 +68,21 @@ describe('RolesService', () => {
     expect(req.request.body.permissions).toEqual([]);
     req.flush({ id: 'r3', name: 'Empty', permissions: [] });
   });
+
+  it('updateRolePermissions — envia PUT com a lista de permissões para o perfil', () => {
+    service.updateRolePermissions('r1', ['Identity.Users.View']).subscribe();
+
+    const req = http.expectOne('http://localhost:5085/api/identity/roles/r1/permissions');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ permissions: ['Identity.Users.View'] });
+    req.flush(null);
+  });
+
+  it('updateRolePermissions — aceita lista de permissões vazia', () => {
+    service.updateRolePermissions('r1', []).subscribe();
+
+    const req = http.expectOne('http://localhost:5085/api/identity/roles/r1/permissions');
+    expect(req.request.body).toEqual({ permissions: [] });
+    req.flush(null);
+  });
 });

@@ -1,7 +1,7 @@
 <p-dialog
   [visible]="visible()"
   (visibleChange)="visible.set($event)"
-  header="Novo Perfil"
+  [header]="dialogHeader()"
   [modal]="true"
   [closable]="true"
   [style]="{ width: '95vw', maxWidth: '720px' }"

@@ -8,7 +8,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
 import { UsersService } from '../../users/users.service';
-import { User, CreateUserRequest, UpdateUserRequest } from '../../../../shared/models/user.model';
+import { User, UserInfo, CreateUserRequest, UpdateUserRequest } from '../../../../shared/models/user.model';
 import { Role } from '../../../../shared/models/role.model';
 import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.directive';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -109,14 +109,18 @@ export class UserFormComponent {
     const value = this.form.getRawValue();
     const editingUser = this.user();
 
+    const userData: UserInfo = {
+      firstName: value.firstName,
+      lastName: value.lastName,
+      phoneNumber: value.phoneNumber || null,
+      emergencyContactName: value.emergencyContactName || null,
+      emergencyContactNumber: value.emergencyContactNumber || null,
+      researchData: null,
+    };
+
     if (editingUser) {
       const body: UpdateUserRequest = {
-        firstName: value.firstName,
-        lastName: value.lastName,
-        email: editingUser.email,
-        phoneNumber: value.phoneNumber || undefined,
-        emergencyContactName: value.emergencyContactName || undefined,
-        emergencyContactNumber: value.emergencyContactNumber || undefined,
+        userData,
         roleIds: value.roleIds,
       };
       this.saving.set(true);
@@ -144,12 +148,9 @@ export class UserFormComponent {
       });
     } else {
       const body: CreateUserRequest = {
-        firstName: value.firstName,
-        lastName: value.lastName,
+        userData,
         email: value.email,
-        phoneNumber: value.phoneNumber || undefined,
-        emergencyContactName: value.emergencyContactName || undefined,
-        emergencyContactNumber: value.emergencyContactNumber || undefined,
+        roleIds: value.roleIds,
       };
       this.saving.set(true);
       this.usersService.createUser(body).subscribe({
