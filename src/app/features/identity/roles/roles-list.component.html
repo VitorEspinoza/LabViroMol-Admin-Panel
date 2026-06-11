@@ -36,9 +36,21 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       @for (role of roles(); track role.roleId) {
         <p-card>
-          <div class="flex items-center gap-3 mb-3">
-            <i class="pi pi-shield text-primary text-xl" aria-hidden="true"></i>
-            <h3 class="font-semibold text-foreground">{{ role.name }}</h3>
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3">
+              <i class="pi pi-shield text-primary text-xl" aria-hidden="true"></i>
+              <h3 class="font-semibold text-foreground">{{ role.name }}</h3>
+            </div>
+            @if (auth.hasPermission('Identity.Roles.Manage')) {
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                size="small"
+                (onClick)="openEdit(role)"
+              />
+            }
           </div>
           <div class="flex flex-wrap gap-2">
             @for (permission of role.permissions; track permission) {
@@ -53,4 +65,4 @@
   }
 </div>
 
-<app-role-form [(visible)]="dialogVisible" (saved)="onFormSaved()" />
+<app-role-form [(visible)]="dialogVisible" [role]="selectedRole()" (saved)="onFormSaved()" />

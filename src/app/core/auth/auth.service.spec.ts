@@ -5,10 +5,17 @@ import { Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { AuthService } from './auth.service';
 import { ApiMeResponse, ApiRoleResponse, SessionUser } from './session.model';
+import { UpdateProfileRequest } from '../../shared/models/user.model';
 
 const mockMeResponse: ApiMeResponse = {
   id: 'user-1',
-  userData: { firstName: 'Ana', lastName: 'Silva', phoneNumber: null, emergencyContactNumber: null },
+  userData: {
+    firstName: 'Ana',
+    lastName: 'Silva',
+    phoneNumber: null,
+    emergencyContactName: null,
+    emergencyContactNumber: null,
+  },
   isActive: true,
   roles: ['Admin'],
 };
@@ -125,6 +132,47 @@ describe('AuthService', () => {
       const req = controller.expectOne(r => r.url.includes('/users/refresh') && r.method === 'POST');
       expect(req.request.body).toEqual({});
       req.flush(null);
+    });
+  });
+
+  describe('getMe', () => {
+    it('deve retornar os dados completos do usuário autenticado', () => {
+      service.getMe().subscribe(me => {
+        expect(me.userData.firstName).toBe('Ana');
+        expect(me.userData.emergencyContactName).toBeNull();
+      });
+
+      const req = controller.expectOne(r => r.url.includes('/users/me') && r.method === 'GET');
+      req.flush(mockMeResponse);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('deve enviar PUT /me e recarregar o usuário atual', () => {
+      const body: UpdateProfileRequest = {
+        userData: {
+          firstName: 'Ana',
+          lastName: 'Costa',
+          phoneNumber: null,
+          emergencyContactName: null,
+          emergencyContactNumber: null,
+          researchData: null,
+        },
+      };
+
+      service.updateProfile(body).subscribe();
+
+      const putReq = controller.expectOne(r => r.url.includes('/users/me') && r.method === 'PUT');
+      expect(putReq.request.body).toEqual(body);
+      putReq.flush(null);
+
+      controller.expectOne(r => r.url.includes('/users/me') && r.method === 'GET').flush({
+        ...mockMeResponse,
+        userData: { ...mockMeResponse.userData, lastName: 'Costa' },
+      });
+      controller.expectOne(r => r.url.includes('/roles')).flush(mockRoles);
+
+      expect(service.currentUser()?.lastName).toBe('Costa');
     });
   });
 });

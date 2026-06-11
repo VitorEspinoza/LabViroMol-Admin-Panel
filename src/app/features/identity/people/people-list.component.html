@@ -23,11 +23,12 @@
   </div>
 
   <p-table
-    [value]="filteredUsers()"
+    [value]="users()"
     [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows()"
+    [first]="first()"
     [totalRecords]="totalRecords()"
     (onLazyLoad)="loadUsers($event)"
     [scrollable]="true"
@@ -48,7 +49,7 @@
     <ng-template pTemplate="body" let-user>
       <tr>
         <td>
-          <span class="font-semibold">{{ user.firstName }} {{ user.lastName }}</span>
+          <span class="font-semibold block truncate max-w-[200px]" [title]="user.fullName">{{ user.fullName }}</span>
         </td>
         <td>{{ user.email }}</td>
         <td class="hidden md:table-cell">
@@ -56,11 +57,13 @@
         </td>
         <td class="hidden md:table-cell">{{ user.emergencyContactName ?? '—' }}</td>
         <td>
-          @if (getRoleName(user)) {
-            <p-tag [value]="getRoleName(user)" severity="info" />
-          } @else {
-            <span class="text-sm text-muted-foreground">—</span>
-          }
+          <div class="flex flex-wrap gap-1">
+            @for (role of user.roles ?? []; track role) {
+              <p-tag [value]="role" severity="info" />
+            } @empty {
+              <span class="text-sm text-muted-foreground">—</span>
+            }
+          </div>
         </td>
         <td>
           <p-toggleswitch
@@ -73,6 +76,15 @@
           @if (auth.hasPermission('Identity.Users.Manage')) {
             <p-button
               icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="openEdit(user)"
+            />
+          } @else {
+            <p-button
+              icon="pi pi-eye"
               [text]="true"
               [rounded]="true"
               severity="secondary"

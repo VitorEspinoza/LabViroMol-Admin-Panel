@@ -9,6 +9,13 @@ import { RolesService } from '../roles.service';
 import { PermissionsService } from '../../permissions/permissions.service';
 import { Role } from '../../../../shared/models/role.model';
 
+const makeRole = (overrides: Partial<Role> = {}): Role => ({
+  roleId: 'r1',
+  name: 'Coordenador',
+  permissions: [],
+  ...overrides,
+});
+
 // "Identity.Users" propositalmente retorna Manage antes de View, simulando a ordem
 // inconsistente do backend e validando que a tela sempre exibe Visualizar primeiro.
 const mockPermissions = [
@@ -33,12 +40,12 @@ describe('RoleFormComponent', () => {
 
   let fixture: ComponentFixture<RoleFormComponent>;
   let component: RoleFormComponent;
-  let rolesServiceMock: Mocked<Pick<RolesService, 'createRole'>>;
+  let rolesServiceMock: Mocked<Pick<RolesService, 'createRole' | 'updateRolePermissions'>>;
   let permissionsServiceMock: Mocked<Pick<PermissionsService, 'getPermissions'>>;
   let messageServiceMock: Mocked<Pick<MessageService, 'add'>>;
 
   beforeEach(async () => {
-    rolesServiceMock = { createRole: vi.fn() };
+    rolesServiceMock = { createRole: vi.fn(), updateRolePermissions: vi.fn() };
     permissionsServiceMock = { getPermissions: vi.fn().mockReturnValue(of(mockPermissions)) };
     messageServiceMock = { add: vi.fn() };
 
@@ -330,6 +337,95 @@ describe('RoleFormComponent', () => {
 
       expect((component as any).visible()).toBe(false);
       expect(rolesServiceMock.createRole).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('modo edição', () => {
+    const editingRole = makeRole({
+      roleId: 'r1',
+      name: 'Coordenador',
+      permissions: ['Identity.Users.View', 'Identity.Roles.View', 'Identity.Roles.Manage'],
+    });
+
+    beforeEach(() => {
+      fixture.componentRef.setInput('role', editingRole);
+      fixture.detectChanges();
+    });
+
+    it('exibe o cabeçalho "Editar Perfil"', () => {
+      expect((component as any).dialogHeader()).toBe('Editar Perfil');
+    });
+
+    it('preenche e desabilita o campo nome com o nome do perfil', () => {
+      (component as any).onDialogShow();
+
+      const nameControl = (component as any).form.controls.name;
+      expect(nameControl.value).toBe('Coordenador');
+      expect(nameControl.disabled).toBe(true);
+    });
+
+    it('pré-seleciona no FormArray as permissões já atribuídas ao perfil', () => {
+      (component as any).onDialogShow();
+
+      const array = (component as any).permissionsArray;
+      const allPermissions: string[] = (component as any).allPermissions;
+
+      editingRole.permissions.forEach(permission => {
+        const index = allPermissions.indexOf(permission);
+        expect(array.at(index).value).toBe(true);
+      });
+
+      // Identity.Users.Manage não estava atribuída e deve permanecer desmarcada.
+      const manageIndex = allPermissions.indexOf('Identity.Users.Manage');
+      expect(array.at(manageIndex).value).toBe(false);
+    });
+
+    it('aplica a cascata Gerenciar -> Visualizar nas permissões pré-selecionadas', () => {
+      (component as any).onDialogShow();
+
+      const array = (component as any).permissionsArray;
+      const allPermissions: string[] = (component as any).allPermissions;
+      const rolesViewIndex = allPermissions.indexOf('Identity.Roles.View');
+
+      expect(array.at(rolesViewIndex).disabled).toBe(true);
+    });
+
+    it('onSave chama updateRolePermissions com as permissões selecionadas', () => {
+      rolesServiceMock.updateRolePermissions.mockReturnValue(of(undefined));
+      (component as any).onDialogShow();
+
+      (component as any).onSave();
+
+      expect(rolesServiceMock.updateRolePermissions).toHaveBeenCalledWith(
+        'r1',
+        expect.arrayContaining(['Identity.Users.View', 'Identity.Roles.View', 'Identity.Roles.Manage']),
+      );
+      expect(rolesServiceMock.createRole).not.toHaveBeenCalled();
+    });
+
+    it('onSave exibe sucesso e fecha o diálogo após atualizar permissões', () => {
+      rolesServiceMock.updateRolePermissions.mockReturnValue(of(undefined));
+      (component as any).onDialogShow();
+
+      (component as any).onSave();
+
+      expect((component as any).visible()).toBe(false);
+      expect(messageServiceMock.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: 'success' }),
+      );
+    });
+
+    it('onSave exibe erro genérico quando updateRolePermissions falha', () => {
+      rolesServiceMock.updateRolePermissions.mockReturnValue(
+        throwError(() => ({ status: 500, error: { error: 'Erro interno.' } })),
+      );
+      (component as any).onDialogShow();
+
+      (component as any).onSave();
+
+      expect(messageServiceMock.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: 'error', detail: 'Erro interno.' }),
+      );
     });
   });
 });

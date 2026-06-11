@@ -12,6 +12,7 @@ export interface ApiMeResponse {
     firstName: string;
     lastName: string;
     phoneNumber: string | null;
+    emergencyContactName: string | null;
     emergencyContactNumber: string | null;
   };
   isActive: boolean;

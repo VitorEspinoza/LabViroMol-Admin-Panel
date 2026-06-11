@@ -29,7 +29,8 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   protected onInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const cursor = target.selectionStart ?? target.value.length;
-    const formatted = formatPhone(target.value.replace(/\D/g, '').slice(0, 11));
+    const digits = target.value.replace(/\D/g, '').slice(0, 11);
+    const formatted = formatPhone(digits);
     const diff = formatted.length - target.value.length;
 
     target.value = formatted;
@@ -38,7 +39,8 @@ export class PhoneMaskDirective implements ControlValueAccessor {
       Math.max(0, Math.min(formatted.length, cursor + diff)),
     );
 
-    this.onChange(formatted);
+    // O FormControl recebe apenas os dígitos (sem máscara) para envio direto à API.
+    this.onChange(digits);
   }
 
   @HostListener('blur')

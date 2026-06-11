@@ -1,4 +1,4 @@
-import { Component, inject, model, output, signal } from '@angular/core';
+import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -9,7 +9,7 @@ import { Checkbox } from 'primeng/checkbox';
 
 import { RolesService } from '../roles.service';
 import { PermissionsService } from '../../permissions/permissions.service';
-import { CreateRoleRequest } from '../../../../shared/models/role.model';
+import { CreateRoleRequest, Role } from '../../../../shared/models/role.model';
 import {
   PERMISSION_ACTION_LABELS,
   PERMISSION_ACTION_ORDER,
@@ -45,6 +45,7 @@ interface PermissionModuleGroup {
 })
 export class RoleFormComponent {
   readonly visible = model(false);
+  readonly role = input<Role | null>(null);
   readonly saved = output<void>();
 
   private readonly rolesService = inject(RolesService);
@@ -55,6 +56,8 @@ export class RoleFormComponent {
   protected readonly saving = signal(false);
   protected readonly loadingPermissions = signal(false);
   protected readonly permissionGroups = signal<PermissionModuleGroup[]>([]);
+  protected readonly isEditing = computed(() => this.role() !== null);
+  protected readonly dialogHeader = computed(() => (this.isEditing() ? 'Editar Perfil' : 'Novo Perfil'));
 
   private allPermissions: string[] = [];
   private cascadeSubscriptions = new Subscription();
@@ -69,13 +72,21 @@ export class RoleFormComponent {
   }
 
   protected onDialogShow(): void {
-    this.form.controls.name.reset('');
+    const role = this.role();
+    if (role) {
+      this.form.controls.name.setValue(role.name);
+      this.form.controls.name.disable();
+    } else {
+      this.form.controls.name.reset('');
+      this.form.controls.name.enable();
+    }
     this.loadPermissions();
   }
 
   private loadPermissions(): void {
     if (this.allPermissions.length > 0) {
       this.resetPermissionValues();
+      this.applyRolePermissions();
       return;
     }
     this.loadingPermissions.set(true);
@@ -85,6 +96,7 @@ export class RoleFormComponent {
         this.permissionGroups.set(this.groupPermissions(permissions));
         this.buildPermissionControls();
         this.setupCascade();
+        this.applyRolePermissions();
         this.loadingPermissions.set(false);
       },
       error: () => {
@@ -95,6 +107,18 @@ export class RoleFormComponent {
           detail: 'Não foi possível carregar as permissões.',
         });
       },
+    });
+  }
+
+  /** Pré-seleciona, no FormArray, as permissões já atribuídas ao perfil em edição. */
+  private applyRolePermissions(): void {
+    const role = this.role();
+    if (!role) return;
+
+    this.permissionsArray.controls.forEach((control, index) => {
+      if (role.permissions.includes(this.allPermissions[index])) {
+        control.setValue(true);
+      }
     });
   }
 
@@ -190,6 +214,32 @@ export class RoleFormComponent {
 
     const value = this.form.getRawValue();
     const selectedPermissions = this.allPermissions.filter((_, i) => value.permissions[i]);
+    const role = this.role();
+
+    if (role) {
+      this.saving.set(true);
+      this.rolesService.updateRolePermissions(role.roleId, selectedPermissions).subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.visible.set(false);
+          this.saved.emit();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Permissões do perfil atualizadas com sucesso.',
+          });
+        },
+        error: err => {
+          this.saving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: err.error?.error ?? 'Erro inesperado.',
+          });
+        },
+      });
+      return;
+    }
 
     const body: CreateRoleRequest = {
       name: value.name,

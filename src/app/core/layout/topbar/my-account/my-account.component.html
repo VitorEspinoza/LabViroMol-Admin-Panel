@@ -1,14 +1,14 @@
 <p-dialog
   [visible]="visible()"
   (visibleChange)="visible.set($event)"
-  [header]="dialogHeader()"
+  header="Minha Conta"
   [modal]="true"
   [closable]="true"
   [style]="{ width: '95vw', maxWidth: '620px' }"
   (onShow)="onDialogShow()"
 >
   <form [formGroup]="form" novalidate>
-    @if (loadingUser()) {
+    @if (loading()) {
       <div class="flex items-center justify-center py-12">
         <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground" aria-hidden="true"></i>
       </div>
@@ -26,44 +26,26 @@
             <div class="flex flex-col gap-1">
               <label for="firstName" class="text-sm font-medium">Primeiro Nome <span class="text-red-500">*</span></label>
               <input pInputText id="firstName" formControlName="firstName" class="w-full" />
-              @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+              @if (form.get('firstName')?.errors?.['required'] && form.get('firstName')?.touched) {
                 <span class="text-xs text-red-500">Primeiro nome é obrigatório.</span>
+              }
+              @if (form.get('firstName')?.errors?.['minlength'] && form.get('firstName')?.touched) {
+                <span class="text-xs text-red-500">O primeiro nome deve ter no mínimo 2 caracteres.</span>
               }
             </div>
 
             <div class="flex flex-col gap-1">
               <label for="lastName" class="text-sm font-medium">Sobrenome <span class="text-red-500">*</span></label>
               <input pInputText id="lastName" formControlName="lastName" class="w-full" />
-              @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+              @if (form.get('lastName')?.errors?.['required'] && form.get('lastName')?.touched) {
                 <span class="text-xs text-red-500">Sobrenome é obrigatório.</span>
+              }
+              @if (form.get('lastName')?.errors?.['minlength'] && form.get('lastName')?.touched) {
+                <span class="text-xs text-red-500">O sobrenome deve ter no mínimo 2 caracteres.</span>
               }
             </div>
 
             <div class="flex flex-col gap-1 md:col-span-2">
-              <label for="email" class="text-sm font-medium">E-mail <span class="text-red-500">*</span></label>
-              <input
-                pInputText
-                id="email"
-                formControlName="email"
-                type="email"
-                class="w-full"
-                [class.opacity-60]="isEditing()"
-              />
-              @if (form.get('email')?.errors?.['required'] && form.get('email')?.touched) {
-                <span class="text-xs text-red-500">E-mail é obrigatório.</span>
-              }
-              @if (form.get('email')?.errors?.['email'] && form.get('email')?.touched) {
-                <span class="text-xs text-red-500">Informe um e-mail válido.</span>
-              }
-              @if (form.get('email')?.errors?.['serverError']) {
-                <span class="text-xs text-red-500">{{ form.get('email')?.errors?.['serverError'] }}</span>
-              }
-              @if (isEditing()) {
-                <span class="text-xs text-muted-foreground">O e-mail não pode ser alterado após a criação.</span>
-              }
-            </div>
-
-            <div class="flex flex-col gap-1">
               <label for="phoneNumber" class="text-sm font-medium">Telefone</label>
               <input
                 pInputText
@@ -73,21 +55,6 @@
                 formControlName="phoneNumber"
                 placeholder="(11) 91234-5678"
                 class="w-full"
-              />
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label for="roleIds" class="text-sm font-medium">Perfis</label>
-              <p-multiselect
-                inputId="roleIds"
-                formControlName="roleIds"
-                [options]="roles()"
-                optionLabel="name"
-                optionValue="roleId"
-                placeholder="Selecione os perfis"
-                display="chip"
-                styleClass="w-full"
-                [showClear]="true"
               />
             </div>
 
@@ -127,28 +94,19 @@
 
   <ng-template #footer>
     <div class="flex justify-end gap-2">
-      @if (readOnly()) {
-        <p-button
-          label="Fechar"
-          [outlined]="true"
-          severity="secondary"
-          (onClick)="onCancel()"
-        />
-      } @else {
-        <p-button
-          label="Cancelar"
-          [outlined]="true"
-          severity="secondary"
-          (onClick)="onCancel()"
-          [disabled]="saving()"
-        />
-        <p-button
-          label="Salvar"
-          [loading]="saving()"
-          [disabled]="loadingUser()"
-          (onClick)="onSave()"
-        />
-      }
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        [disabled]="loading()"
+        (onClick)="onSave()"
+      />
     </div>
   </ng-template>
 </p-dialog>

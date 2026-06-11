@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -46,25 +46,20 @@ export class PeopleListComponent {
   protected readonly dialogVisible = signal(false);
   protected readonly selectedUser = signal<User | null>(null);
   protected readonly searchQuery = signal('');
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
   private rolesLoaded = false;
 
-  protected readonly filteredUsers = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return this.users();
-    return this.users().filter(
-      u =>
-        `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        (u.roles ?? []).some(r => r.toLowerCase().includes(q)),
-    );
-  });
-
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadUsers();
+      });
   }
 
   protected onSearchInput(event: Event): void {
@@ -72,10 +67,13 @@ export class PeopleListComponent {
   }
 
   protected loadUsers(event?: TableLazyLoadEvent): void {
-    const page = event ? Math.floor((event.first ?? 0) / (event.rows ?? 10)) + 1 : 1;
-    const size = event?.rows ?? 10;
+    const first = event?.first ?? this.first();
+    const size = event?.rows ?? this.rows();
+    const page = Math.floor(first / size) + 1;
+    this.first.set(first);
+    this.rows.set(size);
     this.loading.set(true);
-    this.usersService.getUsers({ pageNumber: page, pageSize: size }).subscribe({
+    this.usersService.getUsers({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
       next: res => {
         this.users.set(res.data);
         this.totalRecords.set(res.totalCount);
@@ -138,9 +136,5 @@ export class PeopleListComponent {
         });
       },
     });
-  }
-
-  protected getRoleName(user: User): string {
-    return (user.roles ?? [])[0] ?? '';
   }
 }

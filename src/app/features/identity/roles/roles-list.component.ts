@@ -31,6 +31,7 @@ export class RolesListComponent {
   protected readonly roles = signal<Role[]>([]);
   protected readonly loading = signal(false);
   protected readonly dialogVisible = signal(false);
+  protected readonly selectedRole = signal<Role | null>(null);
 
   protected readonly skeletonCards = Array.from({ length: 6 });
   protected readonly translatePermissionLabel = translatePermissionLabel;
@@ -58,6 +59,12 @@ export class RolesListComponent {
   }
 
   protected openCreate(): void {
+    this.selectedRole.set(null);
+    this.dialogVisible.set(true);
+  }
+
+  protected openEdit(role: Role): void {
+    this.selectedRole.set(role);
     this.dialogVisible.set(true);
   }
 

@@ -44,9 +44,9 @@ describe('PhoneMaskDirective', () => {
     expect(input.value).toBe('(11) 3333-4444');
   });
 
-  it('atualiza o FormControl com o valor formatado', () => {
+  it('atualiza o FormControl apenas com os dígitos, sem máscara', () => {
     typeDigits('11912345678');
-    expect(fixture.componentInstance.control.value).toBe('(11) 91234-5678');
+    expect(fixture.componentInstance.control.value).toBe('11912345678');
   });
 
   it('ignora caracteres não numéricos digitados', () => {
