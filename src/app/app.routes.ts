@@ -52,6 +52,13 @@ export const routes: Routes = [
           ),
         data: { title: 'Parceiros' },
       },
+      {
+        path: 'research/conteudo',
+        canActivate: [permissionGuard('Research.Projects.View')],
+        loadComponent: () =>
+          import('./features/research/content/content.component').then(m => m.ContentComponent),
+        data: { title: 'Conteúdo' },
+      },
     ],
   },
   {

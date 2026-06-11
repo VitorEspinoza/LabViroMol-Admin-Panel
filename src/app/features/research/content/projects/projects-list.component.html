@@ -1,0 +1,99 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-6">
+  <div class="flex items-center justify-between gap-3">
+    <p-iconfield class="w-full max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por título, parceiro ou líder..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+
+    @if (auth.hasPermission('Research.Projects.Manage')) {
+      <p-button label="Novo Projeto" icon="pi pi-plus" (onClick)="openCreate()" />
+    }
+  </div>
+
+  <p-table
+    [value]="filteredProjects()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadProjects($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Título</th>
+        <th>Parceiro</th>
+        <th>Líder/PI</th>
+        <th>Status</th>
+        <th>Criação</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-project>
+      <tr>
+        <td>
+          <span class="font-semibold">{{ project.title }}</span>
+        </td>
+        <td>
+          <p-tag [value]="project.partnerName || '—'" severity="secondary" />
+        </td>
+        <td>{{ project.managerName }}</td>
+        <td>
+          <p-tag [value]="statusLabel(project.status)" [severity]="statusSeverity(project.status)" />
+        </td>
+        <td>{{ project.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <p-button
+            icon="pi pi-eye"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            size="small"
+            (onClick)="openDetail(project)"
+          />
+          @if (auth.hasPermission('Research.Projects.Manage')) {
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="openEdit(project)"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8 text-muted-foreground">
+          Nenhum projeto encontrado.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-project-form
+  [(visible)]="formVisible"
+  [projectId]="editingProjectId()"
+  (saved)="onProjectSaved()"
+/>
+
+<app-project-detail
+  [(visible)]="detailVisible"
+  [projectId]="selectedProjectId()"
+  (changed)="onDetailChanged()"
+/>
