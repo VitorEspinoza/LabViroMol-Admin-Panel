@@ -1,23 +1,29 @@
 import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
 import { UsersService } from '../../users/users.service';
-import { User, UserInfo, CreateUserRequest, UpdateUserRequest } from '../../../../shared/models/user.model';
+import { User, UserInfo, CreateUserRequest, UpdateUserRequest, ResearchRegistrationData } from '../../../../shared/models/user.model';
 import { Role } from '../../../../shared/models/role.model';
+import { DegreeLevel } from '../../../../shared/models/research.model';
 import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.directive';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { PositionsService } from '../../../research/positions/positions.service';
+import { DEGREE_LEVEL_OPTIONS } from '../../../../shared/utils/degree-level';
 
 @Component({
   selector: 'app-user-form',
   imports: [
     ReactiveFormsModule,
-    Dialog, Button, InputText, MultiSelect,
+    Dialog, Button, InputText, MultiSelect, Select, ToggleSwitch,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     PhoneMaskDirective,
   ],
@@ -33,9 +39,12 @@ export class UserFormComponent {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly positionsService = inject(PositionsService);
 
   protected readonly saving = signal(false);
   protected readonly loadingUser = signal(false);
+  protected readonly positionOptions = signal<{ label: string; value: string }[]>([]);
+  protected readonly degreeLevelOptions = DEGREE_LEVEL_OPTIONS;
   protected readonly isEditing = computed(() => this.user() !== null);
   protected readonly canManage = computed(() => this.auth.hasPermission('Identity.Users.Manage'));
   protected readonly readOnly = computed(() => this.isEditing() && !this.canManage());
@@ -52,9 +61,39 @@ export class UserFormComponent {
     roleIds: this.fb.nonNullable.control<string[]>([]),
     emergencyContactName: [''],
     emergencyContactNumber: [''],
+    research: this.fb.nonNullable.group({
+      enabled: [false],
+      positionId: [''],
+      degreeLevel: this.fb.nonNullable.control<DegreeLevel | ''>(''),
+      fieldOfStudy: [''],
+      lattesUrl: [''],
+      citationName: [''],
+      displayName: [''],
+    }),
   });
 
+  constructor() {
+    this.form.controls.research.controls.enabled.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(enabled => {
+        if (this.form.controls.research.disabled) return;
+        this.applyResearchValidators(enabled);
+      });
+  }
+
+  private applyResearchValidators(enabled: boolean): void {
+    const research = this.form.controls.research.controls;
+    (['positionId', 'degreeLevel', 'fieldOfStudy'] as const).forEach(field => {
+      const control = research[field];
+      if (enabled) control.setValidators(Validators.required);
+      else control.clearValidators();
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
   protected onDialogShow(): void {
+    this.loadPositions();
+
     const u = this.user();
     if (!u) {
       this.form.reset();
@@ -78,6 +117,7 @@ export class UserFormComponent {
           emergencyContactName: detail.emergencyContactName ?? '',
           emergencyContactNumber: detail.emergencyContactNumber ?? '',
         });
+        this.patchResearchData(detail.researchData ?? null);
         this.loadingUser.set(false);
         this.applyFormState();
       },
@@ -91,6 +131,37 @@ export class UserFormComponent {
         });
       },
     });
+  }
+
+  private loadPositions(): void {
+    this.positionsService.getPositions({ pageNumber: 1, pageSize: 100 }).subscribe({
+      next: res => this.positionOptions.set(res.data.map(p => ({ label: p.name, value: p.id }))),
+    });
+  }
+
+  private patchResearchData(researchData: ResearchRegistrationData | null): void {
+    const research = this.form.controls.research;
+    research.reset({
+      enabled: false,
+      positionId: '',
+      degreeLevel: '',
+      fieldOfStudy: '',
+      lattesUrl: '',
+      citationName: '',
+      displayName: '',
+    });
+
+    if (researchData) {
+      research.patchValue({
+        enabled: true,
+        positionId: researchData.positionId,
+        degreeLevel: researchData.degreeLevel as DegreeLevel,
+        fieldOfStudy: researchData.fieldOfStudy,
+        lattesUrl: researchData.lattesUrl ?? '',
+        citationName: researchData.citationName ?? '',
+        displayName: researchData.displayName ?? '',
+      });
+    }
   }
 
   private applyFormState(): void {
@@ -109,13 +180,24 @@ export class UserFormComponent {
     const value = this.form.getRawValue();
     const editingUser = this.user();
 
+    const researchData: ResearchRegistrationData | null = value.research.enabled
+      ? {
+          positionId: value.research.positionId,
+          degreeLevel: value.research.degreeLevel as DegreeLevel,
+          fieldOfStudy: value.research.fieldOfStudy,
+          lattesUrl: value.research.lattesUrl || null,
+          citationName: value.research.citationName || null,
+          displayName: value.research.displayName || null,
+        }
+      : null;
+
     const userData: UserInfo = {
       firstName: value.firstName,
       lastName: value.lastName,
       phoneNumber: value.phoneNumber || null,
       emergencyContactName: value.emergencyContactName || null,
       emergencyContactNumber: value.emergencyContactNumber || null,
-      researchData: null,
+      researchData,
     };
 
     if (editingUser) {

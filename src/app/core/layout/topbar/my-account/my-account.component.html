@@ -80,11 +80,74 @@
         </p-tabpanel>
 
         <p-tabpanel value="research">
-          <div class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
-            <i class="pi pi-clock text-4xl"></i>
-            <p class="text-sm text-center max-w-xs">
-              Esta aba estará disponível após a integração com o módulo de Pesquisa.
-            </p>
+          <div formGroupName="research" class="flex flex-col gap-4 py-4">
+            <div class="flex items-center gap-3">
+              <p-toggleswitch inputId="researchEnabled" formControlName="enabled" />
+              <label for="researchEnabled" class="text-sm font-medium">
+                Possuo dados acadêmicos / sou pesquisador(a)
+              </label>
+            </div>
+
+            @if (form.get('research.enabled')?.value) {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label for="positionId" class="text-sm font-medium">Posição no Laboratório <span class="text-red-500">*</span></label>
+                  <p-select
+                    inputId="positionId"
+                    formControlName="positionId"
+                    [options]="positionOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecione a posição"
+                    class="w-full"
+                    styleClass="w-full"
+                  />
+                  @if (form.get('research.positionId')?.errors?.['required'] && form.get('research.positionId')?.touched) {
+                    <span class="text-xs text-red-500">Posição é obrigatória.</span>
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <label for="degreeLevel" class="text-sm font-medium">Titulação <span class="text-red-500">*</span></label>
+                  <p-select
+                    inputId="degreeLevel"
+                    formControlName="degreeLevel"
+                    [options]="degreeLevelOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecione a titulação"
+                    class="w-full"
+                    styleClass="w-full"
+                  />
+                  @if (form.get('research.degreeLevel')?.errors?.['required'] && form.get('research.degreeLevel')?.touched) {
+                    <span class="text-xs text-red-500">Titulação é obrigatória.</span>
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1 md:col-span-2">
+                  <label for="fieldOfStudy" class="text-sm font-medium">Área de Estudo <span class="text-red-500">*</span></label>
+                  <input pInputText id="fieldOfStudy" formControlName="fieldOfStudy" class="w-full" />
+                  @if (form.get('research.fieldOfStudy')?.errors?.['required'] && form.get('research.fieldOfStudy')?.touched) {
+                    <span class="text-xs text-red-500">Área de estudo é obrigatória.</span>
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <label for="citationName" class="text-sm font-medium">Nome de Citação</label>
+                  <input pInputText id="citationName" formControlName="citationName" class="w-full" placeholder="Ex.: Silva, A." />
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <label for="displayName" class="text-sm font-medium">Nome de Exibição</label>
+                  <input pInputText id="displayName" formControlName="displayName" class="w-full" />
+                </div>
+
+                <div class="flex flex-col gap-1 md:col-span-2">
+                  <label for="lattesUrl" class="text-sm font-medium">URL do Currículo Lattes</label>
+                  <input pInputText id="lattesUrl" formControlName="lattesUrl" class="w-full" placeholder="https://lattes.cnpq.br/..." />
+                </div>
+              </div>
+            }
           </div>
         </p-tabpanel>
       </p-tabpanels>

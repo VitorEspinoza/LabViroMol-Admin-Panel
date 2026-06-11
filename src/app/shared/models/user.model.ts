@@ -9,6 +9,7 @@ export interface User {
   emergencyContactNumber?: string | null;
   roles?: string[];
   isActive: boolean;
+  researchData?: ResearchRegistrationData | null;
 }
 
 export interface ResearchRegistrationData {
