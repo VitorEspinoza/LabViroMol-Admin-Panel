@@ -34,6 +34,31 @@ export const routes: Routes = [
           ),
         data: { title: 'Perfis' },
       },
+      {
+        path: 'research/posicoes',
+        canActivate: [permissionGuard('Research.Positions.View')],
+        loadComponent: () =>
+          import('./features/research/positions/positions-list.component').then(
+            m => m.PositionsListComponent,
+          ),
+        data: { title: 'Posições no Laboratório' },
+      },
+      {
+        path: 'research/parceiros',
+        canActivate: [permissionGuard('Research.Partners.View')],
+        loadComponent: () =>
+          import('./features/research/partners/partners-list.component').then(
+            m => m.PartnersListComponent,
+          ),
+        data: { title: 'Parceiros' },
+      },
+      {
+        path: 'research/conteudo',
+        canActivate: [permissionGuard('Research.Projects.View')],
+        loadComponent: () =>
+          import('./features/research/content/content.component').then(m => m.ContentComponent),
+        data: { title: 'Conteúdo' },
+      },
     ],
   },
   {

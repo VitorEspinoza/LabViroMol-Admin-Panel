@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { Validators } from '@angular/forms';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -7,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { UserFormComponent } from './user-form.component';
 import { UsersService } from '../../users/users.service';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { PositionsService } from '../../../research/positions/positions.service';
 import { User, CreateUserResponse } from '../../../../shared/models/user.model';
 import { Role } from '../../../../shared/models/role.model';
 
@@ -25,6 +27,14 @@ const mockUser: User = {
   roles: ['Admin'],
 };
 
+const mockPositionsResponse = {
+  data: [{ id: 'pos1', name: 'Pesquisador', description: '' }],
+  currentPage: 1,
+  pageSize: 100,
+  totalPages: 1,
+  totalCount: 1,
+};
+
 class MockResizeObserver {
   observe() {}
   unobserve() {}
@@ -40,6 +50,7 @@ describe('UserFormComponent', () => {
   let usersServiceMock: Mocked<Pick<UsersService, 'createUser' | 'updateUser' | 'getUserById'>>;
   let messageServiceMock: Mocked<Pick<MessageService, 'add'>>;
   let authServiceMock: { hasPermission: ReturnType<typeof vi.fn> };
+  let positionsServiceMock: Mocked<Pick<PositionsService, 'getPositions'>>;
 
   beforeEach(async () => {
     usersServiceMock = {
@@ -52,6 +63,10 @@ describe('UserFormComponent', () => {
 
     authServiceMock = { hasPermission: vi.fn().mockReturnValue(true) };
 
+    positionsServiceMock = {
+      getPositions: vi.fn().mockReturnValue(of(mockPositionsResponse)),
+    };
+
     await TestBed.configureTestingModule({
       imports: [UserFormComponent],
       providers: [
@@ -59,6 +74,7 @@ describe('UserFormComponent', () => {
         { provide: UsersService, useValue: usersServiceMock },
         { provide: MessageService, useValue: messageServiceMock },
         { provide: AuthService, useValue: authServiceMock },
+        { provide: PositionsService, useValue: positionsServiceMock },
       ],
     }).compileComponents();
 
@@ -300,6 +316,118 @@ describe('UserFormComponent', () => {
       fixture.componentRef.setInput('user', mockUser);
       fixture.detectChanges();
       expect((component as any).isEditing()).toBe(true);
+    });
+  });
+
+  describe('aba Pesquisa/Acadêmico', () => {
+    it('carrega as opções de posições ao abrir o diálogo', () => {
+      (component as any).onDialogShow();
+
+      expect(positionsServiceMock.getPositions).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 100 });
+      expect((component as any).positionOptions()).toEqual([{ label: 'Pesquisador', value: 'pos1' }]);
+    });
+
+    it('aplica validadores obrigatórios quando research.enabled é ativado', () => {
+      const research = (component as any).form.controls.research.controls;
+
+      research.enabled.setValue(true);
+
+      expect(research.positionId.hasValidator(Validators.required)).toBe(true);
+      expect(research.degreeLevel.hasValidator(Validators.required)).toBe(true);
+      expect(research.fieldOfStudy.hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('remove validadores obrigatórios quando research.enabled é desativado', () => {
+      const research = (component as any).form.controls.research.controls;
+
+      research.enabled.setValue(true);
+      research.enabled.setValue(false);
+
+      expect(research.positionId.hasValidator(Validators.required)).toBe(false);
+      expect(research.degreeLevel.hasValidator(Validators.required)).toBe(false);
+      expect(research.fieldOfStudy.hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('envia researchData null na criação quando o toggle está desabilitado', () => {
+      const response: CreateUserResponse = { userId: 'u99', resetToken: 'tok-abc' };
+      usersServiceMock.createUser.mockReturnValue(of(response));
+
+      const form = (component as any).form;
+      form.patchValue({ firstName: 'Carlos', lastName: 'Mendes', email: 'carlos@lab.com' });
+      form.get('email').enable();
+
+      (component as any).onSave();
+
+      expect(usersServiceMock.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userData: expect.objectContaining({ researchData: null }),
+        }),
+      );
+    });
+
+    it('envia researchData preenchido quando o toggle está habilitado', () => {
+      const response: CreateUserResponse = { userId: 'u99', resetToken: 'tok-abc' };
+      usersServiceMock.createUser.mockReturnValue(of(response));
+
+      const form = (component as any).form;
+      form.patchValue({ firstName: 'Carlos', lastName: 'Mendes', email: 'carlos@lab.com' });
+      form.get('email').enable();
+      form.controls.research.patchValue({
+        enabled: true,
+        positionId: 'pos1',
+        degreeLevel: 'Masters',
+        fieldOfStudy: 'Virologia',
+        lattesUrl: 'https://lattes.cnpq.br/123',
+        citationName: 'MENDES, C.',
+        displayName: 'Carlos Mendes',
+      });
+
+      (component as any).onSave();
+
+      expect(usersServiceMock.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userData: expect.objectContaining({
+            researchData: {
+              positionId: 'pos1',
+              degreeLevel: 'Masters',
+              fieldOfStudy: 'Virologia',
+              lattesUrl: 'https://lattes.cnpq.br/123',
+              citationName: 'MENDES, C.',
+              displayName: 'Carlos Mendes',
+            },
+          }),
+        }),
+      );
+    });
+
+    it('preenche a aba de pesquisa com os dados existentes na edição', () => {
+      usersServiceMock.getUserById.mockReturnValue(of({
+        ...mockUser,
+        researchData: {
+          positionId: 'pos1',
+          degreeLevel: 'Doctorate',
+          fieldOfStudy: 'Imunologia',
+          lattesUrl: 'https://lattes.cnpq.br/456',
+          citationName: 'SILVA, A.',
+          displayName: 'Ana Silva',
+        },
+      }));
+      fixture.componentRef.setInput('user', mockUser);
+      fixture.componentRef.setInput('roles', [mockRole]);
+      fixture.detectChanges();
+
+      (component as any).onDialogShow();
+
+      const research = (component as any).form.controls.research;
+      expect(research.value).toEqual({
+        enabled: true,
+        positionId: 'pos1',
+        degreeLevel: 'Doctorate',
+        fieldOfStudy: 'Imunologia',
+        lattesUrl: 'https://lattes.cnpq.br/456',
+        citationName: 'SILVA, A.',
+        displayName: 'Ana Silva',
+      });
     });
   });
 });

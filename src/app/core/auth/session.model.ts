@@ -1,3 +1,5 @@
+import { ResearchRegistrationData } from '../../shared/models/user.model';
+
 export interface SessionUser {
   userId: string;
   email: string;
@@ -14,6 +16,7 @@ export interface ApiMeResponse {
     phoneNumber: string | null;
     emergencyContactName: string | null;
     emergencyContactNumber: string | null;
+    researchData?: ResearchRegistrationData | null;
   };
   isActive: boolean;
   roles: string[];

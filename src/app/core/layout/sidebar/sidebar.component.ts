@@ -76,13 +76,13 @@ export class SidebarComponent {
     {
       key: 'pesquisa',
       label: 'Pesquisa',
-      icon: 'pi pi-search',
+      icon: 'pi pi-graduation-cap',
       items: [
         { label: 'Pessoas', icon: 'pi pi-users', route: '/identity/pessoas', permission: 'Identity.Users.View' },
         { label: 'Perfis', icon: 'pi pi-shield', route: '/identity/perfis', permission: 'Identity.Roles.View' },
         { label: 'Posições no Laboratório', icon: 'pi pi-id-card', route: '/research/posicoes', permission: 'Research.Positions.View' },
         { label: 'Parceiros', icon: 'pi pi-building', route: '/research/parceiros', permission: 'Research.Partners.View' },
-        { label: 'Conteúdo', icon: 'pi pi-file-text', route: '/research/conteudo', permission: 'Research.Projects.View' },
+        { label: 'Conteúdo', icon: 'pi pi-book', route: '/research/conteudo', permission: 'Research.Projects.View' },
       ],
     },
     {

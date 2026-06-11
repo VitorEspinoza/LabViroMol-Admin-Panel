@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.model';
-import { User, CreateUserRequest, CreateUserResponse, UpdateUserRequest } from '../../../shared/models/user.model';
+import { User, CreateUserRequest, CreateUserResponse, UpdateUserRequest, ResearchRegistrationData } from '../../../shared/models/user.model';
 
 interface ApiUserSummary {
   id: string;
@@ -22,6 +22,7 @@ interface ApiUserProfile {
     phoneNumber: string | null;
     emergencyContactName: string | null;
     emergencyContactNumber: string | null;
+    researchData?: ResearchRegistrationData | null;
   };
   isActive: boolean;
   roles: string[];
@@ -50,6 +51,7 @@ function mapUserProfile(api: ApiUserProfile): User {
     emergencyContactNumber: api.userData.emergencyContactNumber,
     roles: api.roles,
     isActive: api.isActive,
+    researchData: api.userData.researchData ?? null,
   };
 }
 

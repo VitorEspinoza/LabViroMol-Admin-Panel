@@ -1,0 +1,194 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  header="Detalhes do Projeto"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '720px' }"
+  (onShow)="onDialogShow()"
+>
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground" aria-hidden="true"></i>
+    </div>
+  } @else if (project(); as project) {
+    <div class="flex flex-col gap-4">
+      <div>
+        <h2 class="text-lg font-semibold">{{ project.title }}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{{ project.description || '—' }}</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <span class="text-sm font-medium block">Status</span>
+          <p-tag [value]="statusLabel(project.status)" [severity]="statusSeverity(project.status)" />
+        </div>
+        <div>
+          <span class="text-sm font-medium block">Parceiro</span>
+          <span class="text-sm text-muted-foreground">{{ project.partnerName || '—' }}</span>
+        </div>
+        <div>
+          <span class="text-sm font-medium block">Líder / PI</span>
+          <span class="text-sm text-muted-foreground">{{ leadMemberName() }}</span>
+        </div>
+        <div>
+          <span class="text-sm font-medium block">Criado em</span>
+          <span class="text-sm text-muted-foreground">{{ project.createdAt | date: 'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      @if (canManage()) {
+        <div class="flex flex-wrap gap-2">
+          @if (project.status === 'Planned') {
+            <p-button label="Iniciar Projeto" icon="pi pi-play" [loading]="processing()" (onClick)="startProject()" />
+          }
+          @if (project.status === 'InProgress') {
+            <p-button label="Concluir Projeto" icon="pi pi-check" severity="success" [loading]="processing()" (onClick)="confirmComplete()" />
+          }
+          @if (project.status === 'Planned' || project.status === 'InProgress') {
+            <p-button label="Cancelar Projeto" icon="pi pi-times" severity="danger" [outlined]="true" [loading]="processing()" (onClick)="confirmCancel()" />
+          }
+          <p-button label="Transferir Liderança" icon="pi pi-user-edit" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openTransfer()" />
+          <p-button label="Adicionar Membro" icon="pi pi-user-plus" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openAddMember()" />
+        </div>
+      }
+
+      <div>
+        <h3 class="text-sm font-semibold mb-2">Membros</h3>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-muted-foreground border-b">
+              <th class="py-2">Nome</th>
+              <th class="py-2">Função</th>
+              @if (canManage()) {
+                <th class="py-2">Ações</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of project.members; track member.researcherId) {
+              <tr class="border-b last:border-0">
+                <td class="py-2">{{ member.researcherName }}</td>
+                <td class="py-2">
+                  @if (canManage() && member.role !== 'ResearchLead') {
+                    <p-select
+                      [ngModel]="member.role"
+                      [ngModelOptions]="{ standalone: true }"
+                      [options]="memberRoleOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      (onChange)="onChangeMemberRole(member.researcherId, $event.value)"
+                    />
+                  } @else {
+                    {{ roleLabel(member.role) }}
+                  }
+                </td>
+                @if (canManage()) {
+                  <td class="py-2">
+                    @if (member.role !== 'ResearchLead') {
+                      <p-button
+                        icon="pi pi-trash"
+                        [text]="true"
+                        [rounded]="true"
+                        severity="danger"
+                        size="small"
+                        (onClick)="confirmRemoveMember(member.researcherId, member.researcherName)"
+                      />
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <ng-template #footer>
+    <p-button label="Fechar" [outlined]="true" severity="secondary" (onClick)="onClose()" />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [visible]="addMemberVisible()"
+  (visibleChange)="addMemberVisible.set($event)"
+  header="Adicionar Membro"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '420px' }"
+>
+  <form [formGroup]="addMemberForm" novalidate>
+    <div class="flex flex-col gap-1 mb-4">
+      <label for="researcherId" class="text-sm font-medium">Pesquisador <span class="text-red-500">*</span></label>
+      <p-select
+        inputId="researcherId"
+        formControlName="researcherId"
+        [options]="availableResearchersForAdd()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione o pesquisador"
+        class="w-full"
+        styleClass="w-full"
+      />
+      @if (addMemberForm.get('researcherId')?.errors?.['required'] && addMemberForm.get('researcherId')?.touched) {
+        <span class="text-xs text-red-500">Pesquisador é obrigatório.</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="role" class="text-sm font-medium">Função <span class="text-red-500">*</span></label>
+      <p-select
+        inputId="role"
+        formControlName="role"
+        [options]="memberRoleOptions"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        styleClass="w-full"
+      />
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary" (onClick)="onAddMemberCancel()" [disabled]="processing()" />
+      <p-button label="Adicionar" [loading]="processing()" (onClick)="onAddMemberSave()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [visible]="transferVisible()"
+  (visibleChange)="transferVisible.set($event)"
+  header="Transferir Liderança"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '420px' }"
+>
+  <form [formGroup]="transferForm" novalidate>
+    <div class="flex flex-col gap-1">
+      <label for="newLeadResearcherId" class="text-sm font-medium">Novo Líder <span class="text-red-500">*</span></label>
+      <p-select
+        inputId="newLeadResearcherId"
+        formControlName="newLeadResearcherId"
+        [options]="availableResearchersForTransfer()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione o novo líder"
+        class="w-full"
+        styleClass="w-full"
+      />
+      @if (transferForm.get('newLeadResearcherId')?.errors?.['required'] && transferForm.get('newLeadResearcherId')?.touched) {
+        <span class="text-xs text-red-500">Novo líder é obrigatório.</span>
+      }
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary" (onClick)="onTransferCancel()" [disabled]="processing()" />
+      <p-button label="Transferir" [loading]="processing()" (onClick)="onTransferSave()" />
+    </div>
+  </ng-template>
+</p-dialog>

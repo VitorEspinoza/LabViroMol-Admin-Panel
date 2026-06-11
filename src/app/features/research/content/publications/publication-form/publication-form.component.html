@@ -1,0 +1,170 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [header]="dialogTitle()"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '720px' }"
+  (onShow)="onDialogShow()"
+>
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground" aria-hidden="true"></i>
+    </div>
+  } @else {
+    <form [formGroup]="form" novalidate class="flex flex-col gap-4">
+      <div>
+        <h3 class="text-sm font-semibold mb-2">Dados Gerais</h3>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="title" class="text-sm font-medium">Título <span class="text-red-500">*</span></label>
+            <input pInputText id="title" formControlName="title" class="w-full" />
+            @if (form.get('title')?.errors?.['required'] && form.get('title')?.touched) {
+              <span class="text-xs text-red-500">Título é obrigatório.</span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="description" class="text-sm font-medium">Descrição <span class="text-red-500">*</span></label>
+            <textarea pTextarea id="description" formControlName="description" rows="3" class="w-full"></textarea>
+            @if (form.get('description')?.errors?.['required'] && form.get('description')?.touched) {
+              <span class="text-xs text-red-500">Descrição é obrigatória.</span>
+            }
+          </div>
+
+          @if (!isEditing()) {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <label for="doi" class="text-sm font-medium">DOI</label>
+                <input pInputText id="doi" formControlName="doi" class="w-full font-mono" placeholder="10.1000/xyz123" />
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label for="publicationDate" class="text-sm font-medium">Data de Publicação <span class="text-red-500">*</span></label>
+                <p-datepicker
+                  inputId="publicationDate"
+                  formControlName="publicationDate"
+                  dateFormat="dd/mm/yy"
+                  [showIcon]="true"
+                  styleClass="w-full"
+                />
+                @if (form.get('publicationDate')?.errors?.['required'] && form.get('publicationDate')?.touched) {
+                  <span class="text-xs text-red-500">Data de publicação é obrigatória.</span>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium block">DOI</span>
+                <span class="text-sm text-muted-foreground font-mono">{{ doi() || '—' }}</span>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium block">Data de Publicação</span>
+                <span class="text-sm text-muted-foreground">
+                  {{ publicationDate() ? (publicationDate() | date: 'dd/MM/yyyy') : '—' }}
+                </span>
+              </div>
+            </div>
+          }
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label for="publishedOn" class="text-sm font-medium">Publicado em <span class="text-red-500">*</span></label>
+              <input pInputText id="publishedOn" formControlName="publishedOn" class="w-full" placeholder="Nome do periódico/veículo" />
+              @if (form.get('publishedOn')?.errors?.['required'] && form.get('publishedOn')?.touched) {
+                <span class="text-xs text-red-500">Campo obrigatório.</span>
+              }
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label for="publishUrl" class="text-sm font-medium">URL da Publicação <span class="text-red-500">*</span></label>
+              <input pInputText id="publishUrl" formControlName="publishUrl" class="w-full" placeholder="https://..." />
+              @if (form.get('publishUrl')?.errors?.['required'] && form.get('publishUrl')?.touched) {
+                <span class="text-xs text-red-500">Campo obrigatório.</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (isEditing()) {
+          <span class="text-xs text-muted-foreground mt-2 block">
+            Estes campos são salvos pelo botão "Salvar" no rodapé.
+          </span>
+        }
+      </div>
+
+      @if (isEditing()) {
+        <div class="border-t border-border pt-4">
+          <h3 class="text-sm font-semibold mb-2">Pesquisadores Vinculados</h3>
+          <span class="text-xs text-muted-foreground block mb-3">
+            As alterações nesta seção (adicionar, remover ou reordenar) são salvas automaticamente.
+          </span>
+
+          <div class="flex items-end gap-2 mb-3">
+            <div class="flex flex-col gap-1 flex-1">
+              <label for="researchersToAdd" class="text-sm font-medium">Adicionar pesquisadores</label>
+              <p-multiselect
+                inputId="researchersToAdd"
+                [(ngModel)]="selectedToAdd"
+                [ngModelOptions]="{ standalone: true }"
+                [options]="availableResearchersToAdd()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecione os pesquisadores"
+                display="chip"
+                styleClass="w-full"
+                [disabled]="researchersSaving()"
+              />
+            </div>
+            <p-button
+              label="Adicionar"
+              icon="pi pi-plus"
+              [outlined]="true"
+              [loading]="researchersSaving()"
+              [disabled]="selectedToAdd.length === 0"
+              (onClick)="onAddSelectedResearchers()"
+            />
+          </div>
+
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-muted-foreground border-b">
+                <th class="py-2">Ordem</th>
+                <th class="py-2">Nome</th>
+                <th class="py-2">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (linked of linkedResearchers(); track linked.name + '-' + $index; let i = $index) {
+                <tr class="border-b last:border-0">
+                  <td class="py-2">{{ i + 1 }}</td>
+                  <td class="py-2">{{ linked.name }}</td>
+                  <td class="py-2">
+                    <p-button icon="pi pi-arrow-up" [text]="true" [rounded]="true" size="small" [disabled]="i === 0 || researchersSaving()" (onClick)="moveUp(i)" />
+                    <p-button icon="pi pi-arrow-down" [text]="true" [rounded]="true" size="small" [disabled]="i === linkedResearchers().length - 1 || researchersSaving()" (onClick)="moveDown(i)" />
+                    @if (linked.researcherId) {
+                      <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small" [disabled]="researchersSaving()" (onClick)="removeLinked(i)" />
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted-foreground">Nenhum pesquisador vinculado.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </form>
+  }
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary" (onClick)="onCancel()" [disabled]="saving()" />
+      <p-button label="Salvar" [loading]="saving()" (onClick)="onSave()" />
+    </div>
+  </ng-template>
+</p-dialog>

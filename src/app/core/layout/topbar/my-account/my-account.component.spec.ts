@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { Validators } from '@angular/forms';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -7,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { MyAccountComponent } from './my-account.component';
 import { AuthService } from '../../../auth/auth.service';
 import { ApiMeResponse } from '../../../auth/session.model';
+import { PositionsService } from '../../../../features/research/positions/positions.service';
 
 const mockMe: ApiMeResponse = {
   id: 'u1',
@@ -19,6 +21,14 @@ const mockMe: ApiMeResponse = {
   },
   isActive: true,
   roles: ['Admin'],
+};
+
+const mockPositionsResponse = {
+  data: [{ id: 'pos1', name: 'Pesquisador', description: '' }],
+  currentPage: 1,
+  pageSize: 100,
+  totalPages: 1,
+  totalCount: 1,
 };
 
 class MockResizeObserver {
@@ -36,6 +46,7 @@ describe('MyAccountComponent', () => {
   let component: MyAccountComponent;
   let authServiceMock: Mocked<Pick<AuthService, 'getMe' | 'updateProfile'>>;
   let messageServiceMock: Mocked<Pick<MessageService, 'add'>>;
+  let positionsServiceMock: Mocked<Pick<PositionsService, 'getPositions'>>;
 
   beforeEach(async () => {
     authServiceMock = {
@@ -43,6 +54,9 @@ describe('MyAccountComponent', () => {
       updateProfile: vi.fn(),
     };
     messageServiceMock = { add: vi.fn() };
+    positionsServiceMock = {
+      getPositions: vi.fn().mockReturnValue(of(mockPositionsResponse)),
+    };
 
     await TestBed.configureTestingModule({
       imports: [MyAccountComponent],
@@ -50,6 +64,7 @@ describe('MyAccountComponent', () => {
         provideNoopAnimations(),
         { provide: AuthService, useValue: authServiceMock },
         { provide: MessageService, useValue: messageServiceMock },
+        { provide: PositionsService, useValue: positionsServiceMock },
       ],
     }).compileComponents();
 
@@ -167,6 +182,104 @@ describe('MyAccountComponent', () => {
       fixture.componentRef.setInput('visible', true);
       (component as any).onCancel();
       expect(component.visible()).toBe(false);
+    });
+  });
+
+  describe('aba Pesquisa/Acadêmico', () => {
+    it('carrega as opções de posições ao abrir o diálogo', () => {
+      (component as any).onDialogShow();
+
+      expect(positionsServiceMock.getPositions).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 100 });
+      expect((component as any).positionOptions()).toEqual([{ label: 'Pesquisador', value: 'pos1' }]);
+    });
+
+    it('aplica validadores obrigatórios quando research.enabled é ativado', () => {
+      const research = (component as any).form.controls.research.controls;
+
+      research.enabled.setValue(true);
+
+      expect(research.positionId.hasValidator(Validators.required)).toBe(true);
+      expect(research.degreeLevel.hasValidator(Validators.required)).toBe(true);
+      expect(research.fieldOfStudy.hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('remove validadores obrigatórios quando research.enabled é desativado', () => {
+      const research = (component as any).form.controls.research.controls;
+
+      research.enabled.setValue(true);
+      research.enabled.setValue(false);
+
+      expect(research.positionId.hasValidator(Validators.required)).toBe(false);
+      expect(research.degreeLevel.hasValidator(Validators.required)).toBe(false);
+      expect(research.fieldOfStudy.hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('preenche a aba de pesquisa com os dados retornados por getMe', () => {
+      authServiceMock.getMe.mockReturnValue(of({
+        ...mockMe,
+        userData: {
+          ...mockMe.userData,
+          researchData: {
+            positionId: 'pos1',
+            degreeLevel: 'Doctorate',
+            fieldOfStudy: 'Imunologia',
+            lattesUrl: 'https://lattes.cnpq.br/456',
+            citationName: 'SILVA, A.',
+            displayName: 'Ana Silva',
+          },
+        },
+      }));
+
+      (component as any).onDialogShow();
+
+      const research = (component as any).form.controls.research;
+      expect(research.value).toEqual({
+        enabled: true,
+        positionId: 'pos1',
+        degreeLevel: 'Doctorate',
+        fieldOfStudy: 'Imunologia',
+        lattesUrl: 'https://lattes.cnpq.br/456',
+        citationName: 'SILVA, A.',
+        displayName: 'Ana Silva',
+      });
+    });
+
+    describe('onSave com pesquisa habilitada', () => {
+      beforeEach(() => {
+        (component as any).onDialogShow();
+      });
+
+      it('envia researchData preenchido quando o toggle está habilitado', () => {
+        authServiceMock.updateProfile.mockReturnValue(of(undefined));
+
+        const form = (component as any).form;
+        form.controls.research.patchValue({
+          enabled: true,
+          positionId: 'pos1',
+          degreeLevel: 'Masters',
+          fieldOfStudy: 'Virologia',
+          lattesUrl: 'https://lattes.cnpq.br/123',
+          citationName: 'SILVA, A.',
+          displayName: 'Ana Silva',
+        });
+
+        (component as any).onSave();
+
+        expect(authServiceMock.updateProfile).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userData: expect.objectContaining({
+              researchData: {
+                positionId: 'pos1',
+                degreeLevel: 'Masters',
+                fieldOfStudy: 'Virologia',
+                lattesUrl: 'https://lattes.cnpq.br/123',
+                citationName: 'SILVA, A.',
+                displayName: 'Ana Silva',
+              },
+            }),
+          }),
+        );
+      });
     });
   });
 });
