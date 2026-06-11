@@ -43,6 +43,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Posições no Laboratório' },
       },
+      {
+        path: 'research/parceiros',
+        canActivate: [permissionGuard('Research.Partners.View')],
+        loadComponent: () =>
+          import('./features/research/partners/partners-list.component').then(
+            m => m.PartnersListComponent,
+          ),
+        data: { title: 'Parceiros' },
+      },
     ],
   },
   {
