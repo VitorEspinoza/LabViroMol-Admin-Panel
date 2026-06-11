@@ -2,15 +2,18 @@ import { Component, computed, inject, input, signal, viewChild } from '@angular/
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { Menu } from 'primeng/menu';
 import { Avatar } from 'primeng/avatar';
 import { Button } from 'primeng/button';
 import { AuthService } from '../../auth/auth.service';
+import { MyAccountComponent } from './my-account/my-account.component';
+import { MyPermissionsComponent } from './my-permissions/my-permissions.component';
 
 @Component({
   selector: 'app-topbar',
-  imports: [Button, Menu, Avatar],
+  imports: [Button, Menu, Avatar, MyAccountComponent, MyPermissionsComponent],
+  providers: [MessageService],
   templateUrl: './topbar.component.html',
 })
 export class TopbarComponent {
@@ -22,6 +25,8 @@ export class TopbarComponent {
   private readonly userMenuRef = viewChild.required<Menu>('userMenu');
 
   protected readonly pageTitle = signal('');
+  protected readonly accountDialogVisible = signal(false);
+  protected readonly permissionsDialogVisible = signal(false);
 
   protected readonly headerClasses = computed(() => {
     const leftClass = this.sidebarCollapsed() ? 'left-16' : 'left-16 md:left-64';
@@ -41,8 +46,16 @@ export class TopbarComponent {
   });
 
   protected readonly menuItems = computed<MenuItem[]>(() => [
-    { label: 'Minha Conta', icon: 'pi pi-user' },
-    { label: 'Perfil', icon: 'pi pi-id-card' },
+    {
+      label: 'Minha Conta',
+      icon: 'pi pi-user',
+      command: () => this.accountDialogVisible.set(true),
+    },
+    {
+      label: 'Perfil',
+      icon: 'pi pi-id-card',
+      command: () => this.permissionsDialogVisible.set(true),
+    },
     { separator: true },
     {
       label: 'Sair',

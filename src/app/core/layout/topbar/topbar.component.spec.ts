@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TopbarComponent } from './topbar.component';
 import { AuthService } from '../../auth/auth.service';
 import { SessionUser } from '../../auth/session.model';
@@ -15,24 +16,39 @@ const mockUser: SessionUser = {
   permissions: [],
 };
 
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
 describe('TopbarComponent', () => {
+  beforeAll(() => {
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
+  });
+
   let fixture: ComponentFixture<TopbarComponent>;
   let component: TopbarComponent;
   let authMock: {
     currentUser: WritableSignal<SessionUser | null>;
     logout: ReturnType<typeof vi.fn>;
+    getMe: ReturnType<typeof vi.fn>;
+    updateProfile: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     authMock = {
       currentUser: signal<SessionUser | null>(mockUser),
       logout: vi.fn().mockReturnValue(of(undefined)),
+      getMe: vi.fn().mockReturnValue(of({ userData: {} })),
+      updateProfile: vi.fn().mockReturnValue(of(undefined)),
     };
 
     await TestBed.configureTestingModule({
       imports: [TopbarComponent],
       providers: [
         provideRouter([]),
+        provideNoopAnimations(),
         { provide: AuthService, useValue: authMock },
       ],
     }).compileComponents();
@@ -72,6 +88,26 @@ describe('TopbarComponent', () => {
     it('deve chamar authService.logout()', () => {
       (component as any).signOut();
       expect(authMock.logout).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('menuItems', () => {
+    it('"Minha Conta" abre o diálogo de edição de conta', () => {
+      const items = (component as any).menuItems();
+      const minhaConta = items.find((i: any) => i.label === 'Minha Conta');
+
+      minhaConta.command();
+
+      expect((component as any).accountDialogVisible()).toBe(true);
+    });
+
+    it('"Perfil" abre o diálogo de permissões', () => {
+      const items = (component as any).menuItems();
+      const perfil = items.find((i: any) => i.label === 'Perfil');
+
+      perfil.command();
+
+      expect((component as any).permissionsDialogVisible()).toBe(true);
     });
   });
 });

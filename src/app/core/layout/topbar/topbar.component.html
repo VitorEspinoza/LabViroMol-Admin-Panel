@@ -32,3 +32,6 @@
     <p-menu #userMenu [model]="menuItems()" [popup]="true" appendTo="body" />
   </div>
 </header>
+
+<app-my-account [(visible)]="accountDialogVisible" />
+<app-my-permissions [(visible)]="permissionsDialogVisible" />

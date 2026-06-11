@@ -1,0 +1,38 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="Minhas Permissões"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '520px' }"
+>
+  @if (permissionGroups().length === 0) {
+    <p class="text-sm text-muted-foreground py-4">Nenhuma permissão atribuída.</p>
+  } @else {
+    <div class="flex flex-col gap-4 py-2">
+      @for (group of permissionGroups(); track group.module) {
+        <div class="flex flex-col gap-2">
+          <h3 class="text-sm font-semibold text-foreground">{{ group.label }}</h3>
+          <div class="flex flex-col gap-1.5">
+            @for (resource of group.resources; track resource.key) {
+              <div class="flex items-center justify-between gap-2 text-sm">
+                <span class="text-muted-foreground">{{ resource.label }}</span>
+                <div class="flex gap-1.5">
+                  @for (action of resource.actions; track action) {
+                    <p-tag [value]="action" severity="info" />
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <ng-template #footer>
+    <div class="flex justify-end">
+      <p-button label="Fechar" [outlined]="true" severity="secondary" (onClick)="onClose()" />
+    </div>
+  </ng-template>
+</p-dialog>
