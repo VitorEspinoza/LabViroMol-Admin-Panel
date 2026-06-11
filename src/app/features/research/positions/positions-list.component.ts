@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -42,6 +42,8 @@ export class PositionsListComponent {
   protected readonly totalRecords = signal(0);
   protected readonly dialogVisible = signal(false);
   protected readonly searchQuery = signal('');
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
 
@@ -50,18 +52,14 @@ export class PositionsListComponent {
     description: [''],
   });
 
-  protected readonly filteredPositions = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return this.positions();
-    return this.positions().filter(
-      p => p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q),
-    );
-  });
-
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadPositions();
+      });
   }
 
   protected onSearchInput(event: Event): void {
@@ -69,10 +67,13 @@ export class PositionsListComponent {
   }
 
   protected loadPositions(event?: TableLazyLoadEvent): void {
-    const page = event ? Math.floor((event.first ?? 0) / (event.rows ?? 10)) + 1 : 1;
-    const size = event?.rows ?? 10;
+    const first = event?.first ?? this.first();
+    const size = event?.rows ?? this.rows();
+    const page = Math.floor(first / size) + 1;
+    this.first.set(first);
+    this.rows.set(size);
     this.loading.set(true);
-    this.positionsService.getPositions({ pageNumber: page, pageSize: size }).subscribe({
+    this.positionsService.getPositions({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
       next: res => {
         this.positions.set(res.data);
         this.totalRecords.set(res.totalCount);

@@ -19,11 +19,12 @@
   </div>
 
   <p-table
-    [value]="filteredProjects()"
+    [value]="projects()"
     [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows()"
+    [first]="first()"
     [totalRecords]="totalRecords()"
     (onLazyLoad)="loadProjects($event)"
     [scrollable]="true"
@@ -90,6 +91,7 @@
   [(visible)]="formVisible"
   [projectId]="editingProjectId()"
   (saved)="onProjectSaved()"
+  (created)="onProjectCreated($event)"
 />
 
 <app-project-detail

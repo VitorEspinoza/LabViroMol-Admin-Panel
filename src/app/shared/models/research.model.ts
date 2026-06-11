@@ -1,3 +1,7 @@
+export interface CreatedResponse {
+  id: string;
+}
+
 // Posições
 
 export interface Position {
@@ -151,8 +155,4 @@ export interface AddPublicationResearcherRequest {
 
 export interface ReorderPublicationResearchersRequest {
   researcherIds: string[];
-}
-
-export interface AssignDoiRequest {
-  doi: string;
 }

@@ -43,6 +43,8 @@ export class PartnersListComponent {
   protected readonly dialogVisible = signal(false);
   protected readonly editingPartner = signal<Partner | null>(null);
   protected readonly searchQuery = signal('');
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
 
@@ -55,18 +57,14 @@ export class PartnersListComponent {
     this.editingPartner() ? 'Editar Parceiro' : 'Novo Parceiro',
   );
 
-  protected readonly filteredPartners = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return this.partners();
-    return this.partners().filter(
-      p => p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q),
-    );
-  });
-
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadPartners();
+      });
   }
 
   protected onSearchInput(event: Event): void {
@@ -74,10 +72,13 @@ export class PartnersListComponent {
   }
 
   protected loadPartners(event?: TableLazyLoadEvent): void {
-    const page = event ? Math.floor((event.first ?? 0) / (event.rows ?? 10)) + 1 : 1;
-    const size = event?.rows ?? 10;
+    const first = event?.first ?? this.first();
+    const size = event?.rows ?? this.rows();
+    const page = Math.floor(first / size) + 1;
+    this.first.set(first);
+    this.rows.set(size);
     this.loading.set(true);
-    this.partnersService.getPartners({ pageNumber: page, pageSize: size }).subscribe({
+    this.partnersService.getPartners({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
       next: res => {
         this.partners.set(res.data);
         this.totalRecords.set(res.totalCount);

@@ -7,6 +7,7 @@ import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.m
 import {
   AddProjectMemberRequest,
   ChangeMemberRoleRequest,
+  CreatedResponse,
   CreateProjectRequest,
   Project,
   ProjectSummary,
@@ -24,6 +25,7 @@ export class ProjectsService {
     let httpParams = new HttpParams();
     if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
     if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
+    if (params.search) httpParams = httpParams.set('search', params.search);
     return this.http.get<PagedResponse<ProjectSummary>>(this.base, { params: httpParams });
   }
 
@@ -31,8 +33,8 @@ export class ProjectsService {
     return this.http.get<Project>(`${this.base}/${id}`);
   }
 
-  createProject(body: CreateProjectRequest): Observable<void> {
-    return this.http.post<void>(this.base, body);
+  createProject(body: CreateProjectRequest): Observable<CreatedResponse> {
+    return this.http.post<CreatedResponse>(this.base, body);
   }
 
   updateProject(id: string, body: UpdateProjectRequest): Observable<void> {

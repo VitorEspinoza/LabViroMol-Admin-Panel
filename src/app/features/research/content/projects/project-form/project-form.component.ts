@@ -21,6 +21,7 @@ export class ProjectFormComponent {
   readonly visible = model(false);
   readonly projectId = input<string | null>(null);
   readonly saved = output<void>();
+  readonly created = output<string>();
 
   private readonly projectsService = inject(ProjectsService);
   private readonly partnersService = inject(PartnersService);
@@ -30,7 +31,7 @@ export class ProjectFormComponent {
   private readonly fb = inject(FormBuilder);
 
   protected readonly saving = signal(false);
-  protected readonly loading = signal(false);
+  protected readonly loading = signal(true);
   protected readonly partnerOptions = signal<{ label: string; value: string }[]>([]);
   protected readonly researcherOptions = signal<{ label: string; value: string }[]>([]);
 
@@ -45,7 +46,6 @@ export class ProjectFormComponent {
   });
 
   protected onDialogShow(): void {
-    this.form.reset({ title: '', description: '', principalInvestigatorId: '', partnerId: '' });
     this.loadOptions();
 
     const id = this.projectId();
@@ -68,8 +68,7 @@ export class ProjectFormComponent {
         },
       });
     } else {
-      this.form.controls.principalInvestigatorId.enable();
-      this.form.controls.partnerId.enable();
+      this.loading.set(false);
     }
   }
 
@@ -86,6 +85,16 @@ export class ProjectFormComponent {
     this.visible.set(false);
   }
 
+  protected onVisibleChange(visible: boolean): void {
+    this.visible.set(visible);
+    if (!visible) {
+      this.form.reset({ title: '', description: '', principalInvestigatorId: '', partnerId: '' });
+      this.form.controls.principalInvestigatorId.enable();
+      this.form.controls.partnerId.enable();
+      this.loading.set(true);
+    }
+  }
+
   protected onSave(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -97,38 +106,46 @@ export class ProjectFormComponent {
     const userId = this.authService.currentUser()?.userId ?? '';
     this.saving.set(true);
 
-    const request$ = id
-      ? this.projectsService.updateProject(id, {
+    if (id) {
+      this.projectsService
+        .updateProject(id, {
           title: value.title,
           description: value.description,
           requestedById: userId,
         })
-      : this.projectsService.createProject({
+        .subscribe({
+          next: () => this.onSaveSuccess('Projeto atualizado com sucesso.'),
+          error: err => this.onSaveError(err, 'Não foi possível atualizar o projeto.'),
+        });
+    } else {
+      this.projectsService
+        .createProject({
           title: value.title,
           description: value.description,
           principalInvestigatorId: value.principalInvestigatorId,
           partnerId: value.partnerId,
+        })
+        .subscribe({
+          next: res => this.onSaveSuccess('Projeto criado com sucesso.', res.id),
+          error: err => this.onSaveError(err, 'Não foi possível criar o projeto.'),
         });
+    }
+  }
 
-    request$.subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.visible.set(false);
-        this.saved.emit();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: id ? 'Projeto atualizado com sucesso.' : 'Projeto criado com sucesso.',
-        });
-      },
-      error: err => {
-        this.saving.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: this.extractErrorMessage(err, id ? 'Não foi possível atualizar o projeto.' : 'Não foi possível criar o projeto.'),
-        });
-      },
+  private onSaveSuccess(detail: string, newProjectId?: string): void {
+    this.saving.set(false);
+    this.visible.set(false);
+    this.saved.emit();
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail });
+    if (newProjectId) this.created.emit(newProjectId);
+  }
+
+  private onSaveError(err: unknown, fallback: string): void {
+    this.saving.set(false);
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Erro',
+      detail: this.extractErrorMessage(err, fallback),
     });
   }
 

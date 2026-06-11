@@ -104,12 +104,15 @@ describe('ProjectsService', () => {
       partnerId: 'pt1',
     };
 
-    service.createProject(body).subscribe();
+    let response: { id: string } | undefined;
+    service.createProject(body).subscribe(res => (response = res));
 
     const req = http.expectOne('http://localhost:5085/api/research/projects');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(body);
-    req.flush(null, { status: 201, statusText: 'Created' });
+    req.flush({ id: 'pr-novo' }, { status: 201, statusText: 'Created' });
+
+    expect(response).toEqual({ id: 'pr-novo' });
   });
 
   it('createProject — propaga erro 422 (parceiro inválido)', () => {

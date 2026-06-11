@@ -19,11 +19,12 @@
   </div>
 
   <p-table
-    [value]="filteredPublications()"
+    [value]="publications()"
     [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows()"
+    [first]="first()"
     [totalRecords]="totalRecords()"
     (onLazyLoad)="loadPublications($event)"
     [scrollable]="true"
@@ -50,16 +51,6 @@
         <td>{{ publication.publicationDate ? (publication.publicationDate | date: 'dd/MM/yyyy') : '—' }}</td>
         <td>{{ publication.citationName || '—' }}</td>
         <td>
-          @if (!publication.doi && auth.hasPermission('Research.Publications.Manage')) {
-            <p-button
-              label="Atribuir DOI"
-              icon="pi pi-key"
-              [text]="true"
-              size="small"
-              severity="secondary"
-              (onClick)="openAssignDoi(publication)"
-            />
-          }
           @if (auth.hasPermission('Research.Publications.Manage')) {
             <p-button
               icon="pi pi-pencil"
@@ -97,29 +88,3 @@
   [publicationId]="editingPublicationId()"
   (saved)="onPublicationSaved()"
 />
-
-<p-dialog
-  [visible]="doiDialogVisible()"
-  (visibleChange)="doiDialogVisible.set($event)"
-  header="Atribuir DOI"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '95vw', maxWidth: '420px' }"
->
-  <form [formGroup]="doiForm" novalidate>
-    <div class="flex flex-col gap-1">
-      <label for="doi" class="text-sm font-medium">DOI <span class="text-red-500">*</span></label>
-      <input pInputText id="doi" formControlName="doi" class="w-full font-mono" placeholder="10.1000/xyz123" />
-      @if (doiForm.get('doi')?.errors?.['required'] && doiForm.get('doi')?.touched) {
-        <span class="text-xs text-red-500">DOI é obrigatório.</span>
-      }
-    </div>
-  </form>
-
-  <ng-template #footer>
-    <div class="flex justify-end gap-2">
-      <p-button label="Cancelar" [outlined]="true" severity="secondary" (onClick)="onAssignDoiCancel()" [disabled]="doiSaving()" />
-      <p-button label="Atribuir" [loading]="doiSaving()" (onClick)="onAssignDoiSave()" />
-    </div>
-  </ng-template>
-</p-dialog>

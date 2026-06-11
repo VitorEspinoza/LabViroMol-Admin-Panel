@@ -15,6 +15,7 @@ export class PositionsService {
     let httpParams = new HttpParams();
     if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
     if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
+    if (params.search) httpParams = httpParams.set('search', params.search);
     return this.http.get<PagedResponse<Position>>(this.base, { params: httpParams });
   }
 

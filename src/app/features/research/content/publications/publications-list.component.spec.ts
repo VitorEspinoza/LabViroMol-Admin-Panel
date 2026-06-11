@@ -44,7 +44,7 @@ describe('PublicationsListComponent', () => {
   let fixture: ComponentFixture<PublicationsListComponent>;
   let component: PublicationsListComponent;
   let publicationsServiceMock: Mocked<
-    Pick<PublicationsService, 'getPublications' | 'getPublicationById' | 'assignDoi' | 'deletePublication'>
+    Pick<PublicationsService, 'getPublications' | 'getPublicationById' | 'deletePublication'>
   >;
   let researchersServiceMock: Mocked<Pick<ResearchersService, 'getResearchers'>>;
   let authServiceMock: { hasPermission: ReturnType<typeof vi.fn>; currentUser: ReturnType<typeof signal> };
@@ -72,7 +72,6 @@ describe('PublicationsListComponent', () => {
     publicationsServiceMock = {
       getPublications: vi.fn().mockReturnValue(of(pagedResponse([makePublication()]))),
       getPublicationById: vi.fn(),
-      assignDoi: vi.fn().mockReturnValue(of(undefined)),
       deletePublication: vi.fn().mockReturnValue(of(undefined)),
     };
     researchersServiceMock = {
@@ -119,41 +118,51 @@ describe('PublicationsListComponent', () => {
     });
   });
 
-  describe('filteredPublications', () => {
-    const pub1 = makePublication({ id: 'pub1', title: 'Estudo sobre Arboviroses', doi: '10.1000/aaa', citationName: 'Ana Silva' });
-    const pub2 = makePublication({ id: 'pub2', title: 'Mapeamento Genético de Vetores', doi: '10.2000/bbb', citationName: 'Carlos Souza' });
+  describe('busca server-side', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    beforeEach(async () => {
-      publicationsServiceMock.getPublications = vi.fn().mockReturnValue(of(pagedResponse([pub1, pub2])));
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('envia o termo de busca para getPublications após o debounce', async () => {
       await setup();
+      publicationsServiceMock.getPublications.mockClear();
+
+      (component as any).onSearchInput({ target: { value: 'genético' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(publicationsServiceMock.getPublications).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'genético',
+      });
     });
 
-    it('retorna todas quando a busca está vazia', () => {
-      (component as any).searchQuery.set('');
-      expect((component as any).filteredPublications().length).toBe(2);
+    it('reseta para a primeira página ao buscar', async () => {
+      await setup();
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'carlos' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
     });
 
-    it('filtra por título', () => {
-      (component as any).searchQuery.set('genético');
-      expect((component as any).filteredPublications().length).toBe(1);
-      expect((component as any).filteredPublications()[0].id).toBe('pub2');
-    });
+    it('não envia o parâmetro search quando a busca está vazia', async () => {
+      await setup();
+      publicationsServiceMock.getPublications.mockClear();
 
-    it('filtra por autor/citationName', () => {
-      (component as any).searchQuery.set('carlos');
-      expect((component as any).filteredPublications().length).toBe(1);
-      expect((component as any).filteredPublications()[0].id).toBe('pub2');
-    });
+      (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
 
-    it('filtra por DOI', () => {
-      (component as any).searchQuery.set('10.1000/aaa');
-      expect((component as any).filteredPublications().length).toBe(1);
-      expect((component as any).filteredPublications()[0].id).toBe('pub1');
-    });
-
-    it('retorna lista vazia quando não há correspondência', () => {
-      (component as any).searchQuery.set('xyznotfound');
-      expect((component as any).filteredPublications().length).toBe(0);
+      expect(publicationsServiceMock.getPublications).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+      });
     });
   });
 
@@ -183,61 +192,6 @@ describe('PublicationsListComponent', () => {
       (component as any).onPublicationSaved();
 
       expect(publicationsServiceMock.getPublications).toHaveBeenCalled();
-    });
-  });
-
-  describe('atribuir DOI', () => {
-    it('openAssignDoi abre o diálogo e reseta o formulário de DOI', async () => {
-      await setup();
-
-      (component as any).openAssignDoi(makePublication({ id: 'pub3', doi: '' }));
-
-      expect((component as any).doiDialogVisible()).toBe(true);
-      expect((component as any).doiForm.value.doi).toBe('');
-    });
-
-    it('onAssignDoiCancel fecha o diálogo', async () => {
-      await setup();
-      (component as any).doiDialogVisible.set(true);
-
-      (component as any).onAssignDoiCancel();
-
-      expect((component as any).doiDialogVisible()).toBe(false);
-    });
-
-    it('onAssignDoiSave não envia quando o formulário é inválido', async () => {
-      await setup();
-      (component as any).openAssignDoi(makePublication({ id: 'pub3', doi: '' }));
-
-      (component as any).onAssignDoiSave();
-
-      expect(publicationsServiceMock.assignDoi).not.toHaveBeenCalled();
-    });
-
-    it('onAssignDoiSave atribui o DOI, fecha o diálogo e recarrega a lista', async () => {
-      await setup();
-      (component as any).openAssignDoi(makePublication({ id: 'pub3', doi: '' }));
-      (component as any).doiForm.setValue({ doi: '10.9999/novo' });
-      publicationsServiceMock.getPublications.mockClear();
-
-      (component as any).onAssignDoiSave();
-
-      expect(publicationsServiceMock.assignDoi).toHaveBeenCalledWith('pub3', { doi: '10.9999/novo' });
-      expect((component as any).doiDialogVisible()).toBe(false);
-      expect((component as any).doiSaving()).toBe(false);
-      expect(publicationsServiceMock.getPublications).toHaveBeenCalled();
-    });
-
-    it('onAssignDoiSave trata erro ao atribuir o DOI', async () => {
-      publicationsServiceMock.assignDoi = vi.fn().mockReturnValue(throwError(() => ({ status: 500 })));
-      await setup();
-      (component as any).openAssignDoi(makePublication({ id: 'pub3', doi: '' }));
-      (component as any).doiForm.setValue({ doi: '10.9999/novo' });
-
-      (component as any).onAssignDoiSave();
-
-      expect((component as any).doiSaving()).toBe(false);
-      expect((component as any).doiDialogVisible()).toBe(true);
     });
   });
 

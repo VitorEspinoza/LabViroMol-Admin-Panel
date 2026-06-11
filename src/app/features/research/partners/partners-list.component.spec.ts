@@ -108,35 +108,51 @@ describe('PartnersListComponent', () => {
     });
   });
 
-  describe('filteredPartners', () => {
-    const partner1 = makePartner({ id: 'pa1', name: 'Universidade Federal', description: 'Pesquisa clínica.' });
-    const partner2 = makePartner({ id: 'pa2', name: 'Instituto de Tecnologia', description: 'Apoio laboratorial.' });
+  describe('busca server-side', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    beforeEach(async () => {
-      partnersServiceMock.getPartners = vi.fn().mockReturnValue(of(pagedResponse([partner1, partner2])));
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('envia o termo de busca para getPartners após o debounce', async () => {
       await setup();
+      partnersServiceMock.getPartners.mockClear();
+
+      (component as any).onSearchInput({ target: { value: 'tecnologia' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(partnersServiceMock.getPartners).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'tecnologia',
+      });
     });
 
-    it('retorna todos quando a busca está vazia', () => {
-      (component as any).searchQuery.set('');
-      expect((component as any).filteredPartners().length).toBe(2);
+    it('reseta para a primeira página ao buscar', async () => {
+      await setup();
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'clínica' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
     });
 
-    it('filtra por nome', () => {
-      (component as any).searchQuery.set('tecnologia');
-      expect((component as any).filteredPartners().length).toBe(1);
-      expect((component as any).filteredPartners()[0].id).toBe('pa2');
-    });
+    it('não envia o parâmetro search quando a busca está vazia', async () => {
+      await setup();
+      partnersServiceMock.getPartners.mockClear();
 
-    it('filtra por descrição', () => {
-      (component as any).searchQuery.set('clínica');
-      expect((component as any).filteredPartners().length).toBe(1);
-      expect((component as any).filteredPartners()[0].id).toBe('pa1');
-    });
+      (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
 
-    it('retorna lista vazia quando não há correspondência', () => {
-      (component as any).searchQuery.set('xyznotfound');
-      expect((component as any).filteredPartners().length).toBe(0);
+      expect(partnersServiceMock.getPartners).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+      });
     });
   });
 

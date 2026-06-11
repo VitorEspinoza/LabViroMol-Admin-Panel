@@ -5,7 +5,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { PublicationsService } from './publications.service';
 import {
   AddPublicationResearcherRequest,
-  AssignDoiRequest,
   CreatePublicationRequest,
   Publication,
   PublicationSummary,
@@ -107,12 +106,15 @@ describe('PublicationsService', () => {
       publishUrl: 'https://science.org/articles/abc456',
     };
 
-    service.createPublication(body).subscribe();
+    let response: { id: string } | undefined;
+    service.createPublication(body).subscribe(res => (response = res));
 
     const req = http.expectOne('http://localhost:5085/api/research/publications');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(body);
-    req.flush(null, { status: 201, statusText: 'Created' });
+    req.flush({ id: 'pub-novo' }, { status: 201, statusText: 'Created' });
+
+    expect(response).toEqual({ id: 'pub-novo' });
   });
 
   it('createPublication — propaga erro 400 (validação)', () => {
@@ -175,35 +177,6 @@ describe('PublicationsService', () => {
     http.expectOne('http://localhost:5085/api/research/publications/inexistente').flush(
       { errors: ['Publicação não encontrada.'] },
       { status: 404, statusText: 'Not Found' },
-    );
-    expect(caught).toBe(true);
-  });
-
-  it('assignDoi — envia PUT /doi com corpo correto', () => {
-    const body: AssignDoiRequest = { doi: '10.1000/novo-doi' };
-
-    service.assignDoi('pub1', body).subscribe();
-
-    const req = http.expectOne('http://localhost:5085/api/research/publications/pub1/doi');
-    expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual(body);
-    req.flush(null);
-  });
-
-  it('assignDoi — propaga erro 409 (DOI já utilizado)', () => {
-    const body: AssignDoiRequest = { doi: '10.1000/duplicado' };
-    let caught = false;
-
-    service.assignDoi('pub1', body).subscribe({
-      error: err => {
-        expect(err.status).toBe(409);
-        caught = true;
-      },
-    });
-
-    http.expectOne('http://localhost:5085/api/research/publications/pub1/doi').flush(
-      { errors: ['DOI já está em uso por outra publicação.'] },
-      { status: 409, statusText: 'Conflict' },
     );
     expect(caught).toBe(true);
   });

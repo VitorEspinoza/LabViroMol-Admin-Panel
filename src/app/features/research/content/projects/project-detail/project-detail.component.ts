@@ -37,7 +37,7 @@ export class ProjectDetailComponent {
   private readonly fb = inject(FormBuilder);
 
   protected readonly project = signal<Project | null>(null);
-  protected readonly loading = signal(false);
+  protected readonly loading = signal(true);
   protected readonly processing = signal(false);
   protected readonly researcherOptions = signal<{ label: string; value: string }[]>([]);
 
@@ -109,7 +109,17 @@ export class ProjectDetailComponent {
   }
 
   protected onClose(): void {
-    this.visible.set(false);
+    this.onVisibleChange(false);
+  }
+
+  protected onVisibleChange(visible: boolean): void {
+    this.visible.set(visible);
+    if (!visible) {
+      this.project.set(null);
+      this.loading.set(true);
+      this.addMemberVisible.set(false);
+      this.transferVisible.set(false);
+    }
   }
 
   private get currentUserId(): string {

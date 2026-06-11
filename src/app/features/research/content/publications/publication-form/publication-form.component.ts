@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -33,16 +33,18 @@ export class PublicationFormComponent {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
-  protected readonly loading = signal(false);
+  protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly researchersSaving = signal(false);
   protected readonly researcherOptions = signal<{ label: string; value: string }[]>([]);
   protected readonly linkedResearchers = signal<LinkedResearcher[]>([]);
+  protected readonly doi = signal<string | null>(null);
   protected readonly publicationDate = signal<string | null>(null);
 
   protected selectedToAdd: string[] = [];
-  private originalResearcherIds: string[] = [];
+  private readonly currentId = signal<string | null>(null);
 
-  protected readonly isEditing = computed(() => this.publicationId() !== null);
+  protected readonly isEditing = computed(() => this.currentId() !== null);
   protected readonly dialogTitle = computed(() => (this.isEditing() ? 'Editar Publicação' : 'Nova Publicação'));
 
   protected readonly availableResearchersToAdd = computed(() => {
@@ -66,12 +68,14 @@ export class PublicationFormComponent {
   protected onDialogShow(): void {
     this.form.reset({ title: '', description: '', doi: '', publicationDate: null, publishedOn: '', publishUrl: '' });
     this.linkedResearchers.set([]);
+    this.doi.set(null);
     this.publicationDate.set(null);
     this.selectedToAdd = [];
-    this.originalResearcherIds = [];
+    this.currentId.set(this.publicationId());
 
     if (this.isEditing()) {
       this.form.controls.doi.disable();
+      this.form.controls.doi.clearValidators();
       this.form.controls.publicationDate.disable();
       this.form.controls.publicationDate.clearValidators();
     } else {
@@ -79,12 +83,15 @@ export class PublicationFormComponent {
       this.form.controls.publicationDate.enable();
       this.form.controls.publicationDate.setValidators(Validators.required);
     }
+    this.form.controls.doi.updateValueAndValidity();
     this.form.controls.publicationDate.updateValueAndValidity();
+
+    const id = this.publicationId();
+    this.loading.set(id !== null);
 
     this.researchersService.getResearchers({ pageNumber: 1, pageSize: 100 }).subscribe({
       next: res => {
         this.researcherOptions.set(res.data.map(r => ({ label: r.displayName, value: r.id })));
-        const id = this.publicationId();
         if (id) this.loadPublication(id);
       },
     });
@@ -97,10 +104,10 @@ export class PublicationFormComponent {
         this.form.patchValue({
           title: publication.title,
           description: publication.description,
-          doi: publication.doi,
           publishedOn: publication.publishedOn,
           publishUrl: publication.publishUrl,
         });
+        this.doi.set(publication.doi || null);
         this.publicationDate.set(publication.publicationDate);
 
         const sortedAuthors = [...publication.authors].sort((a, b) => a.order - b.order);
@@ -109,9 +116,6 @@ export class PublicationFormComponent {
           return { researcherId: match?.value ?? null, name: author.name };
         });
         this.linkedResearchers.set(linked);
-        this.originalResearcherIds = linked
-          .map(l => l.researcherId)
-          .filter((rid): rid is string => rid !== null);
 
         this.loading.set(false);
       },
@@ -130,20 +134,49 @@ export class PublicationFormComponent {
     this.visible.set(false);
   }
 
+  protected onVisibleChange(visible: boolean): void {
+    this.visible.set(visible);
+    if (!visible) {
+      this.form.reset({ title: '', description: '', doi: '', publicationDate: null, publishedOn: '', publishUrl: '' });
+      this.linkedResearchers.set([]);
+      this.doi.set(null);
+      this.publicationDate.set(null);
+      this.currentId.set(null);
+      this.loading.set(true);
+    }
+  }
+
   protected onAddSelectedResearchers(): void {
-    if (this.selectedToAdd.length === 0) return;
+    const id = this.currentId();
+    if (!id || this.selectedToAdd.length === 0) return;
+
     const additions: LinkedResearcher[] = this.selectedToAdd
-      .map(id => this.researcherOptions().find(r => r.value === id))
+      .map(rid => this.researcherOptions().find(r => r.value === rid))
       .filter((opt): opt is { label: string; value: string } => !!opt)
       .map(opt => ({ researcherId: opt.value, name: opt.label }));
 
-    this.linkedResearchers.update(list => [...list, ...additions]);
-    this.selectedToAdd = [];
+    this.researchersSaving.set(true);
+    forkJoin(additions.map(a => this.publicationsService.addResearcher(id, { researcherId: a.researcherId! }))).subscribe({
+      next: () => {
+        this.researchersSaving.set(false);
+        this.linkedResearchers.update(list => [...list, ...additions]);
+        this.selectedToAdd = [];
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pesquisador(es) adicionado(s) com sucesso.' });
+      },
+      error: err => {
+        this.researchersSaving.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: this.extractErrorMessage(err, 'Não foi possível adicionar o(s) pesquisador(es).'),
+        });
+      },
+    });
   }
 
   protected moveUp(index: number): void {
     if (index <= 0) return;
-    this.linkedResearchers.update(list => {
+    this.reorderLinked(list => {
       const copy = [...list];
       [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
       return copy;
@@ -151,7 +184,7 @@ export class PublicationFormComponent {
   }
 
   protected moveDown(index: number): void {
-    this.linkedResearchers.update(list => {
+    this.reorderLinked(list => {
       if (index >= list.length - 1) return list;
       const copy = [...list];
       [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
@@ -159,8 +192,51 @@ export class PublicationFormComponent {
     });
   }
 
+  private reorderLinked(updateFn: (list: LinkedResearcher[]) => LinkedResearcher[]): void {
+    const id = this.currentId();
+    if (!id) return;
+
+    const newList = updateFn(this.linkedResearchers());
+    const researcherIds = newList.map(l => l.researcherId).filter((rid): rid is string => rid !== null);
+
+    this.researchersSaving.set(true);
+    this.publicationsService.reorderResearchers(id, { researcherIds }).subscribe({
+      next: () => {
+        this.researchersSaving.set(false);
+        this.linkedResearchers.set(newList);
+      },
+      error: err => {
+        this.researchersSaving.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: this.extractErrorMessage(err, 'Não foi possível reordenar os pesquisadores.'),
+        });
+      },
+    });
+  }
+
   protected removeLinked(index: number): void {
-    this.linkedResearchers.update(list => list.filter((_, i) => i !== index));
+    const id = this.currentId();
+    const linked = this.linkedResearchers()[index];
+    if (!id || !linked?.researcherId) return;
+
+    this.researchersSaving.set(true);
+    this.publicationsService.removeResearcher(id, linked.researcherId).subscribe({
+      next: () => {
+        this.researchersSaving.set(false);
+        this.linkedResearchers.update(list => list.filter((_, i) => i !== index));
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pesquisador removido com sucesso.' });
+      },
+      error: err => {
+        this.researchersSaving.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: this.extractErrorMessage(err, 'Não foi possível remover o pesquisador.'),
+        });
+      },
+    });
   }
 
   protected onSave(): void {
@@ -172,7 +248,7 @@ export class PublicationFormComponent {
     this.saving.set(true);
 
     if (this.isEditing()) {
-      const id = this.publicationId()!;
+      const id = this.currentId()!;
       this.publicationsService
         .updatePublication(id, {
           title: value.title,
@@ -180,7 +256,6 @@ export class PublicationFormComponent {
           publishedOn: value.publishedOn,
           publishUrl: value.publishUrl,
         })
-        .pipe(switchMap(() => this.applyResearcherChanges(id)))
         .subscribe({
           next: () => this.onSaveSuccess('Publicação atualizada com sucesso.'),
           error: err => this.onSaveError(err, 'Não foi possível atualizar a publicação.'),
@@ -196,35 +271,35 @@ export class PublicationFormComponent {
           publishUrl: value.publishUrl,
         })
         .subscribe({
-          next: () => this.onSaveSuccess('Publicação criada com sucesso.'),
+          next: res => this.onCreateSuccess(res.id, value.publicationDate),
           error: err => this.onSaveError(err, 'Não foi possível criar a publicação.'),
         });
     }
   }
 
-  private applyResearcherChanges(id: string) {
-    const finalIds = this.linkedResearchers()
-      .map(r => r.researcherId)
-      .filter((rid): rid is string => rid !== null);
+  private onCreateSuccess(id: string, publicationDate: Date | null): void {
+    this.saving.set(false);
+    this.currentId.set(id);
+    this.linkedResearchers.set([]);
 
-    const toAdd = finalIds.filter(rid => !this.originalResearcherIds.includes(rid));
-    const toRemove = this.originalResearcherIds.filter(rid => !finalIds.includes(rid));
-    const orderChanged = JSON.stringify(finalIds) !== JSON.stringify(this.originalResearcherIds);
+    const value = this.form.getRawValue();
+    this.doi.set(value.doi || null);
 
-    const ops = [
-      ...toAdd.map(rid => this.publicationsService.addResearcher(id, { researcherId: rid })),
-      ...toRemove.map(rid => this.publicationsService.removeResearcher(id, rid)),
-    ];
+    this.form.controls.doi.disable();
+    this.form.controls.doi.clearValidators();
+    this.form.controls.doi.updateValueAndValidity();
 
-    const ops$: Observable<unknown> = ops.length > 0 ? forkJoin(ops) : of(null);
+    this.form.controls.publicationDate.disable();
+    this.form.controls.publicationDate.clearValidators();
+    this.form.controls.publicationDate.updateValueAndValidity();
+    this.publicationDate.set(publicationDate ? this.toDateString(publicationDate) : null);
 
-    return ops$.pipe(
-      switchMap(() =>
-        toAdd.length > 0 || toRemove.length > 0 || orderChanged
-          ? this.publicationsService.reorderResearchers(id, { researcherIds: finalIds })
-          : of(undefined),
-      ),
-    );
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Sucesso',
+      detail: 'Publicação criada com sucesso. Agora vincule os pesquisadores.',
+    });
+    this.saved.emit();
   }
 
   private onSaveSuccess(detail: string): void {

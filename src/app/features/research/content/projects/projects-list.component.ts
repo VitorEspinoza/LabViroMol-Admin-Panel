@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -37,6 +37,8 @@ export class ProjectsListComponent {
   protected readonly loading = signal(false);
   protected readonly totalRecords = signal(0);
   protected readonly searchQuery = signal('');
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
 
   protected readonly formVisible = signal(false);
   protected readonly editingProjectId = signal<string | null>(null);
@@ -48,23 +50,15 @@ export class ProjectsListComponent {
   protected readonly statusSeverities = PROJECT_STATUS_SEVERITIES;
 
   private readonly searchSubject = new Subject<string>();
-  private lastEvent?: TableLazyLoadEvent;
-
-  protected readonly filteredProjects = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return this.projects();
-    return this.projects().filter(
-      p =>
-        p.title.toLowerCase().includes(q) ||
-        p.partnerName.toLowerCase().includes(q) ||
-        p.managerName.toLowerCase().includes(q),
-    );
-  });
 
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadProjects();
+      });
   }
 
   protected onSearchInput(event: Event): void {
@@ -72,11 +66,13 @@ export class ProjectsListComponent {
   }
 
   protected loadProjects(event?: TableLazyLoadEvent): void {
-    this.lastEvent = event ?? this.lastEvent;
-    const page = event ? Math.floor((event.first ?? 0) / (event.rows ?? 10)) + 1 : 1;
-    const size = event?.rows ?? 10;
+    const first = event?.first ?? this.first();
+    const size = event?.rows ?? this.rows();
+    const page = Math.floor(first / size) + 1;
+    this.first.set(first);
+    this.rows.set(size);
     this.loading.set(true);
-    this.projectsService.getProjects({ pageNumber: page, pageSize: size }).subscribe({
+    this.projectsService.getProjects({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
       next: res => {
         this.projects.set(res.data);
         this.totalRecords.set(res.totalCount);
@@ -109,11 +105,16 @@ export class ProjectsListComponent {
   }
 
   protected onProjectSaved(): void {
-    this.loadProjects(this.lastEvent);
+    this.loadProjects();
+  }
+
+  protected onProjectCreated(id: string): void {
+    this.selectedProjectId.set(id);
+    this.detailVisible.set(true);
   }
 
   protected onDetailChanged(): void {
-    this.loadProjects(this.lastEvent);
+    this.loadProjects();
   }
 
   protected statusLabel(status: ProjectStatus): string {

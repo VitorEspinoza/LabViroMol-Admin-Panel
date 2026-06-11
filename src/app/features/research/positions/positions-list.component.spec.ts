@@ -107,35 +107,51 @@ describe('PositionsListComponent', () => {
     });
   });
 
-  describe('filteredPositions', () => {
-    const pos1 = makePosition({ id: 'p1', name: 'Pesquisador Sênior', description: 'Lidera projetos.' });
-    const pos2 = makePosition({ id: 'p2', name: 'Estagiário', description: 'Apoio a projetos.' });
+  describe('busca server-side', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    beforeEach(async () => {
-      positionsServiceMock.getPositions = vi.fn().mockReturnValue(of(pagedResponse([pos1, pos2])));
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('envia o termo de busca para getPositions após o debounce', async () => {
       await setup();
+      positionsServiceMock.getPositions.mockClear();
+
+      (component as any).onSearchInput({ target: { value: 'sênior' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(positionsServiceMock.getPositions).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'sênior',
+      });
     });
 
-    it('retorna todas quando a busca está vazia', () => {
-      (component as any).searchQuery.set('');
-      expect((component as any).filteredPositions().length).toBe(2);
+    it('reseta para a primeira página ao buscar', async () => {
+      await setup();
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'estagiário' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
     });
 
-    it('filtra por nome', () => {
-      (component as any).searchQuery.set('estagi');
-      expect((component as any).filteredPositions().length).toBe(1);
-      expect((component as any).filteredPositions()[0].id).toBe('p2');
-    });
+    it('não envia o parâmetro search quando a busca está vazia', async () => {
+      await setup();
+      positionsServiceMock.getPositions.mockClear();
 
-    it('filtra por descrição', () => {
-      (component as any).searchQuery.set('lidera');
-      expect((component as any).filteredPositions().length).toBe(1);
-      expect((component as any).filteredPositions()[0].id).toBe('p1');
-    });
+      (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
 
-    it('retorna lista vazia quando não há correspondência', () => {
-      (component as any).searchQuery.set('xyznotfound');
-      expect((component as any).filteredPositions().length).toBe(0);
+      expect(positionsServiceMock.getPositions).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+      });
     });
   });
 

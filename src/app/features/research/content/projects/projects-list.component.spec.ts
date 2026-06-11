@@ -137,41 +137,51 @@ describe('ProjectsListComponent', () => {
     });
   });
 
-  describe('filteredProjects', () => {
-    const project1 = makeProject({ id: 'pr1', title: 'Estudo de Arboviroses', partnerName: 'UFMG', managerName: 'Ana Silva' });
-    const project2 = makeProject({ id: 'pr2', title: 'Mapeamento Genético', partnerName: 'Instituto Butantan', managerName: 'Carlos Souza' });
+  describe('busca server-side', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    beforeEach(async () => {
-      projectsServiceMock.getProjects = vi.fn().mockReturnValue(of(pagedResponse([project1, project2])));
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('envia o termo de busca para getProjects após o debounce', async () => {
       await setup();
+      projectsServiceMock.getProjects.mockClear();
+
+      (component as any).onSearchInput({ target: { value: 'genético' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect(projectsServiceMock.getProjects).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'genético',
+      });
     });
 
-    it('retorna todos quando a busca está vazia', () => {
-      (component as any).searchQuery.set('');
-      expect((component as any).filteredProjects().length).toBe(2);
+    it('reseta para a primeira página ao buscar', async () => {
+      await setup();
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'butantan' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
     });
 
-    it('filtra por título', () => {
-      (component as any).searchQuery.set('genético');
-      expect((component as any).filteredProjects().length).toBe(1);
-      expect((component as any).filteredProjects()[0].id).toBe('pr2');
-    });
+    it('não envia o parâmetro search quando a busca está vazia', async () => {
+      await setup();
+      projectsServiceMock.getProjects.mockClear();
 
-    it('filtra por parceiro', () => {
-      (component as any).searchQuery.set('butantan');
-      expect((component as any).filteredProjects().length).toBe(1);
-      expect((component as any).filteredProjects()[0].id).toBe('pr2');
-    });
+      (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
 
-    it('filtra por líder/PI', () => {
-      (component as any).searchQuery.set('ana silva');
-      expect((component as any).filteredProjects().length).toBe(1);
-      expect((component as any).filteredProjects()[0].id).toBe('pr1');
-    });
-
-    it('retorna lista vazia quando não há correspondência', () => {
-      (component as any).searchQuery.set('xyznotfound');
-      expect((component as any).filteredProjects().length).toBe(0);
+      expect(projectsServiceMock.getProjects).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+      });
     });
   });
 

@@ -23,11 +23,12 @@
   </div>
 
   <p-table
-    [value]="filteredPositions()"
+    [value]="positions()"
     [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows()"
+    [first]="first()"
     [totalRecords]="totalRecords()"
     (onLazyLoad)="loadPositions($event)"
     [scrollable]="true"
