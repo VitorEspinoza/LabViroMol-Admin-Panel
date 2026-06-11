@@ -1,0 +1,125 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-6">
+  <div class="flex items-center justify-between gap-3">
+    <p-iconfield class="w-full max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por título, autor ou DOI..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+
+    @if (auth.hasPermission('Research.Publications.Manage')) {
+      <p-button label="Nova Publicação" icon="pi pi-plus" (onClick)="openCreate()" />
+    }
+  </div>
+
+  <p-table
+    [value]="filteredPublications()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadPublications($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Título</th>
+        <th>DOI</th>
+        <th>Data de Publicação</th>
+        <th>Autores</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-publication>
+      <tr>
+        <td>
+          <span class="font-semibold block max-w-xs truncate" [title]="publication.title">{{ publication.title }}</span>
+        </td>
+        <td>
+          <span class="font-mono text-xs">{{ publication.doi || '—' }}</span>
+        </td>
+        <td>{{ publication.publicationDate ? (publication.publicationDate | date: 'dd/MM/yyyy') : '—' }}</td>
+        <td>{{ publication.citationName || '—' }}</td>
+        <td>
+          @if (!publication.doi && auth.hasPermission('Research.Publications.Manage')) {
+            <p-button
+              label="Atribuir DOI"
+              icon="pi pi-key"
+              [text]="true"
+              size="small"
+              severity="secondary"
+              (onClick)="openAssignDoi(publication)"
+            />
+          }
+          @if (auth.hasPermission('Research.Publications.Manage')) {
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="openEdit(publication)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              [rounded]="true"
+              severity="danger"
+              size="small"
+              (onClick)="confirmDelete(publication)"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8 text-muted-foreground">
+          Nenhuma publicação encontrada.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-publication-form
+  [(visible)]="formVisible"
+  [publicationId]="editingPublicationId()"
+  (saved)="onPublicationSaved()"
+/>
+
+<p-dialog
+  [visible]="doiDialogVisible()"
+  (visibleChange)="doiDialogVisible.set($event)"
+  header="Atribuir DOI"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '420px' }"
+>
+  <form [formGroup]="doiForm" novalidate>
+    <div class="flex flex-col gap-1">
+      <label for="doi" class="text-sm font-medium">DOI <span class="text-red-500">*</span></label>
+      <input pInputText id="doi" formControlName="doi" class="w-full font-mono" placeholder="10.1000/xyz123" />
+      @if (doiForm.get('doi')?.errors?.['required'] && doiForm.get('doi')?.touched) {
+        <span class="text-xs text-red-500">DOI é obrigatório.</span>
+      }
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary" (onClick)="onAssignDoiCancel()" [disabled]="doiSaving()" />
+      <p-button label="Atribuir" [loading]="doiSaving()" (onClick)="onAssignDoiSave()" />
+    </div>
+  </ng-template>
+</p-dialog>
