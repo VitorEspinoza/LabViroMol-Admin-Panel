@@ -59,6 +59,15 @@ export const routes: Routes = [
           import('./features/research/content/content.component').then(m => m.ContentComponent),
         data: { title: 'Conteúdo' },
       },
+      {
+        path: 'inventory/tipos',
+        canActivate: [permissionGuard('Inventory.Materials.View')],
+        loadComponent: () =>
+          import('./features/inventory/material-types/material-types-list.component').then(
+            m => m.MaterialTypesListComponent,
+          ),
+        data: { title: 'Tipos de Materiais' },
+      },
     ],
   },
   {
