@@ -1,0 +1,43 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="Salvar como Kit"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '480px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="flex flex-col gap-4 py-2">
+      <div class="flex flex-col gap-1">
+        <label for="kitName" class="text-sm font-medium">Nome <span class="text-red-500">*</span></label>
+        <input pInputText id="kitName" formControlName="name" class="w-full" />
+        @if (form.get('name')?.errors?.['required'] && form.get('name')?.touched) {
+          <span class="text-xs text-red-500">Nome é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="kitDescription" class="text-sm font-medium">Descrição</label>
+        <textarea pTextarea id="kitDescription" formControlName="description" rows="3" class="w-full"></textarea>
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

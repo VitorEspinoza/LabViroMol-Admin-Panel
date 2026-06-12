@@ -1,0 +1,86 @@
+<div class="flex flex-col lg:flex-row gap-6">
+  <div class="lg:w-[65%] flex flex-col gap-3 min-w-0">
+    <div class="flex items-center gap-3">
+      <p-iconfield class="w-full max-w-sm">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar por nome, tipo, unidade ou localização..."
+          class="w-full"
+          (input)="onSearchInput($event)"
+        />
+      </p-iconfield>
+    </div>
+
+    <p-table
+      [value]="materials()"
+      [lazy]="true"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="rows()"
+      [first]="first()"
+      [totalRecords]="totalRecords()"
+      (onLazyLoad)="loadMaterials($event)"
+      [scrollable]="true"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Material</th>
+          <th>Tipo</th>
+          <th>Quantidade</th>
+          <th>Ação</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-material>
+        <tr>
+          <td>
+            <div class="flex flex-col">
+              <span class="font-semibold">{{ material.name }}</span>
+              <span class="text-xs text-muted-foreground">{{ material.location }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="inline-flex items-center rounded-full border border-border bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+              {{ material.typeName }}
+            </span>
+          </td>
+          <td>
+            @if (material.isLowStock) {
+              <span class="inline-flex items-center gap-1 text-red-600 font-medium">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                {{ material.stockQuantity }} {{ material.unit | materialUnitLabel }}
+              </span>
+            } @else {
+              <span>{{ material.stockQuantity }} {{ material.unit | materialUnitLabel }}</span>
+            }
+          </td>
+          <td>
+            <p-button
+              label="Adicionar"
+              icon="pi pi-plus"
+              [text]="true"
+              size="small"
+              [disabled]="material.stockQuantity <= 0"
+              (onClick)="addToCart(material)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center py-8 text-muted-foreground">
+            Nenhum material encontrado.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <div class="lg:w-[35%] lg:sticky lg:top-6 lg:self-start">
+    <app-cart />
+  </div>
+</div>

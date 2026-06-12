@@ -1,0 +1,127 @@
+<div class="rounded-xl border border-border bg-card p-4">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-foreground">Carrinho</h2>
+    @if (count() > 0) {
+      <span class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-primary text-white text-xs font-semibold">
+        {{ count() }}
+      </span>
+    }
+  </div>
+
+  @if (count() === 0) {
+    <p class="text-sm text-muted-foreground">Vazio.</p>
+  } @else {
+    <ul class="flex flex-col gap-3 max-h-[50vh] overflow-y-auto pr-1">
+      @for (item of items(); track item.materialId) {
+        <li class="flex items-center justify-between gap-2">
+          <div class="flex flex-col min-w-0">
+            <span class="text-sm font-medium truncate" [title]="item.materialName">{{ item.materialName }}</span>
+            <span class="text-xs text-muted-foreground">{{ item.unit | materialUnitLabel }}</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <p-button
+              icon="pi pi-minus"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              severity="secondary"
+              [disabled]="item.quantity <= 1"
+              [attr.aria-label]="'Diminuir quantidade de ' + item.materialName"
+              (onClick)="decrement(item.materialId)"
+            />
+            <span class="text-sm font-semibold w-8 text-center">{{ item.quantity }}</span>
+            <p-button
+              icon="pi pi-plus"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              severity="secondary"
+              [disabled]="item.quantity >= item.maxQuantity"
+              [attr.aria-label]="'Aumentar quantidade de ' + item.materialName"
+              (onClick)="increment(item.materialId)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              severity="danger"
+              [attr.aria-label]="'Remover ' + item.materialName + ' do carrinho'"
+              (onClick)="remove(item.materialId)"
+            />
+          </div>
+        </li>
+      }
+    </ul>
+
+    <div class="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+      @if (auth.hasPermission('Inventory.Stock.Manage')) {
+        <p-button label="Confirmar Baixa" icon="pi pi-check" class="w-full" (onClick)="openConfirmDialog()" />
+      }
+      @if (auth.hasPermission('Inventory.Kits.Manage')) {
+        <p-button label="Salvar como Kit" icon="pi pi-box" [outlined]="true" class="w-full" (onClick)="openSaveKitDialog()" />
+      }
+    </div>
+  }
+</div>
+
+<p-dialog
+  [visible]="confirmDialogVisible()"
+  (visibleChange)="confirmDialogVisible.set($event)"
+  header="Confirmar Baixa"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '480px' }"
+>
+  <form [formGroup]="confirmForm" novalidate>
+    <div class="flex flex-col gap-4 py-2">
+      <p class="text-sm text-muted-foreground m-0">
+        Os itens a seguir serão dados como baixa do estoque para o projeto selecionado:
+      </p>
+
+      <ul class="text-sm list-disc pl-5 space-y-1">
+        @for (item of items(); track item.materialId) {
+          <li>{{ item.materialName }} — {{ item.quantity }} {{ item.unit | materialUnitLabel }}</li>
+        }
+      </ul>
+
+      <div class="flex flex-col gap-1">
+        <label for="confirmProjectId" class="text-sm font-medium">Projeto <span class="text-red-500">*</span></label>
+        <p-select
+          inputId="confirmProjectId"
+          formControlName="projectId"
+          [options]="projectOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          placeholder="Selecione o projeto"
+          class="w-full"
+          styleClass="w-full"
+        />
+        @if (confirmForm.get('projectId')?.errors?.['required'] && confirmForm.get('projectId')?.touched) {
+          <span class="text-xs text-red-500">Projeto é obrigatório.</span>
+        }
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancelConfirm()"
+        [disabled]="confirming()"
+      />
+      <p-button
+        label="Confirmar"
+        [loading]="confirming()"
+        (onClick)="confirmWriteOff()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<app-save-kit-dialog [(visible)]="saveKitDialogVisible" />

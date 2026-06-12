@@ -1,0 +1,39 @@
+<div class="space-y-4">
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <i class="pi pi-spin pi-spinner text-2xl text-muted-foreground" aria-hidden="true"></i>
+    </div>
+  } @else if (kits().length === 0) {
+    <p class="text-center py-12 text-muted-foreground">Nenhum kit salvo.</p>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (kit of kits(); track kit.kitId) {
+        <div class="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-box text-primary text-lg" aria-hidden="true"></i>
+            <h3 class="font-semibold text-foreground">{{ kit.name }}</h3>
+          </div>
+
+          @if (kit.description) {
+            <p class="text-sm text-muted-foreground">{{ kit.description }}</p>
+          }
+
+          <ul class="text-sm space-y-1 flex-1">
+            @for (material of kit.materials; track material.materialId) {
+              <li>{{ material.materialName }} — {{ material.quantity }} {{ material.unit | materialUnitLabel }}</li>
+            }
+          </ul>
+
+          <p-button
+            label="Carregar no Carrinho"
+            icon="pi pi-shopping-cart"
+            [outlined]="true"
+            [loading]="loadingKitId() === kit.kitId"
+            class="w-full"
+            (onClick)="loadIntoCart(kit)"
+          />
+        </div>
+      }
+    </div>
+  }
+</div>
