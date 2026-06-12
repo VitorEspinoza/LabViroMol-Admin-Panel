@@ -3,21 +3,17 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { MaterialsService } from './materials.service';
-import { CreateMaterialRequest, Material, UpdateMaterialRequest } from '../../../shared/models/inventory.model';
-import { PagedResponse } from '../../../shared/models/pagination.model';
+import { CreateMaterialRequest, UpdateMaterialRequest } from '../../../shared/models/inventory.model';
 
-const mockMaterial: Material = {
-  materialId: 'mat1',
+// Shape retornado pela API (GET /api/inventory/materials e /materials/{id})
+const rawMaterial = {
+  id: 'mat1',
   name: 'Álcool 70%',
-  location: 'Armário A1',
-  stockQuantity: 500,
+  materialType: 'Reagentes',
   minStock: 100,
+  stockQuantity: 500,
   unit: 'Milliliter',
-  typeId: 'mt1',
-  typeName: 'Reagentes',
-  isLowStock: false,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
+  location: 'Armário A1',
 };
 
 describe('MaterialsService', () => {
@@ -34,9 +30,9 @@ describe('MaterialsService', () => {
 
   afterEach(() => http.verify());
 
-  it('getMaterials — mapeia PagedResponse corretamente', () => {
-    const response: PagedResponse<Material> = {
-      data: [mockMaterial],
+  it('getMaterials — mapeia PagedResponse da API (id, materialType) para o formato do frontend', () => {
+    const response = {
+      data: [rawMaterial],
       currentPage: 1,
       pageSize: 10,
       totalPages: 1,
@@ -45,9 +41,16 @@ describe('MaterialsService', () => {
 
     service.getMaterials({ pageNumber: 1, pageSize: 10 }).subscribe(res => {
       expect(res.data.length).toBe(1);
-      expect(res.data[0].materialId).toBe('mat1');
-      expect(res.data[0].unit).toBe('Milliliter');
-      expect(res.data[0].isLowStock).toBe(false);
+      expect(res.data[0]).toEqual({
+        materialId: 'mat1',
+        name: 'Álcool 70%',
+        location: 'Armário A1',
+        stockQuantity: 500,
+        minStock: 100,
+        unit: 'Milliliter',
+        typeName: 'Reagentes',
+        isLowStock: false,
+      });
     });
 
     const req = http.expectOne(r => r.url === 'http://localhost:5085/api/inventory/materials');
@@ -57,8 +60,8 @@ describe('MaterialsService', () => {
   });
 
   it('getMaterials — mapeia isLowStock = true quando estoque está baixo', () => {
-    const response: PagedResponse<Material> = {
-      data: [{ ...mockMaterial, stockQuantity: 50, isLowStock: true }],
+    const response = {
+      data: [{ ...rawMaterial, stockQuantity: 50, minStock: 100 }],
       currentPage: 1,
       pageSize: 10,
       totalPages: 1,
@@ -72,13 +75,14 @@ describe('MaterialsService', () => {
     http.expectOne(r => r.url === 'http://localhost:5085/api/inventory/materials').flush(response);
   });
 
-  it('getMaterialById — retorna material', () => {
+  it('getMaterialById — mapeia id para materialId e materialType para typeName', () => {
     service.getMaterialById('mat1').subscribe(material => {
       expect(material.materialId).toBe('mat1');
       expect(material.typeName).toBe('Reagentes');
+      expect(material.isLowStock).toBe(false);
     });
 
-    http.expectOne('http://localhost:5085/api/inventory/materials/mat1').flush(mockMaterial);
+    http.expectOne('http://localhost:5085/api/inventory/materials/mat1').flush(rawMaterial);
   });
 
   it('getMaterialById — propaga erro 404 (não encontrado)', () => {

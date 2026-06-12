@@ -13,11 +13,8 @@ export interface Material {
   stockQuantity: number;
   minStock: number;
   unit: MaterialUnit;
-  typeId: string;
   typeName: string;
   isLowStock: boolean;
-  createdAt: string;
-  updatedAt: string | null;
 }
 
 export interface CreateMaterialRequest {
@@ -59,7 +56,7 @@ export interface RemoveStockRequest {
 // Tipos de Material
 
 export interface MaterialType {
-  materialTypeId: string;
+  id: string;
   name: string;
   active: boolean;
 }

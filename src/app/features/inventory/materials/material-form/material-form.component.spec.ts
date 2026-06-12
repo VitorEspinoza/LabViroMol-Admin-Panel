@@ -17,17 +17,14 @@ const mockMaterial: Material = {
   stockQuantity: 500,
   minStock: 100,
   unit: 'Milliliter',
-  typeId: 'mt1',
   typeName: 'Reagentes',
   isLowStock: false,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
 };
 
 const typesResponse: PagedResponse<MaterialType> = {
   data: [
-    { materialTypeId: 'mt1', name: 'Reagentes', active: true },
-    { materialTypeId: 'mt2', name: 'Descontinuado', active: false },
+    { id: 'mt1', name: 'Reagentes', active: true },
+    { id: 'mt2', name: 'Descontinuado', active: false },
   ],
   currentPage: 1,
   pageSize: 100,

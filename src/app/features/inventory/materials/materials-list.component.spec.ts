@@ -18,11 +18,8 @@ const makeMaterial = (overrides: Partial<Material> = {}): Material => ({
   stockQuantity: 500,
   minStock: 100,
   unit: 'Milliliter',
-  typeId: 'mt1',
   typeName: 'Reagentes',
   isLowStock: false,
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: null,
   ...overrides,
 });
 

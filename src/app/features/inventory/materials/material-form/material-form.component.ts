@@ -58,7 +58,7 @@ export class MaterialFormComponent {
     this.materialTypeName.set(m.typeName);
     this.form.reset({
       name: m.name,
-      typeId: m.typeId,
+      typeId: '',
       unit: m.unit,
       stockQuantity: m.stockQuantity,
       minStock: m.minStock,
@@ -99,7 +99,7 @@ export class MaterialFormComponent {
     this.materialTypesService.getTypes({ pageNumber: 1, pageSize: 100 }).subscribe({
       next: res =>
         this.typeOptions.set(
-          res.data.filter(t => t.active).map(t => ({ label: t.name, value: t.materialTypeId })),
+          res.data.filter(t => t.active).map(t => ({ label: t.name, value: t.id })),
         ),
     });
   }
