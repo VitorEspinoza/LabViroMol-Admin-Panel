@@ -1,0 +1,122 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-6">
+  <app-page-header
+    title="Pedidos de Materiais"
+    subtitle="Gerencie as solicitações de compra. Ao receber um pedido, o material entra no estoque automaticamente."
+  >
+    <ng-container actions>
+      @if (auth.hasPermission('Inventory.Orders.Manage')) {
+        <p-button label="Novo Pedido" icon="pi pi-plus" (onClick)="openCreate()" />
+      }
+    </ng-container>
+  </app-page-header>
+
+  <div class="flex items-center gap-3">
+    <p-iconfield class="w-full max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por material, projeto ou status..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+  </div>
+
+  <p-table
+    [value]="orders()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="rows()"
+    [first]="first()"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadOrders($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Material</th>
+        <th>Projeto</th>
+        <th>Quantidade</th>
+        <th pSortableColumn="createdAt">Criação <p-sortIcon field="createdAt" /></th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-order>
+      <tr>
+        <td>
+          <span class="font-semibold">{{ order.materialName }}</span>
+        </td>
+        <td>{{ order.projectTitle }}</td>
+        <td>{{ order.requestedQuantity }} {{ unitFor(order.materialId) | materialUnitLabel }}</td>
+        <td>{{ order.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <p-tag [value]="statusLabel(order.status)" [severity]="statusSeverity(order.status)" />
+        </td>
+        <td>
+          @if (auth.hasPermission('Inventory.Orders.Manage')) {
+            @if (order.status === 'Pending') {
+              <p-button
+                label="Processar"
+                icon="pi pi-cog"
+                [text]="true"
+                size="small"
+                (onClick)="openProcess(order)"
+              />
+            } @else if (order.status === 'Processing') {
+              <div class="flex items-center gap-1">
+                <p-button
+                  label="Receber"
+                  icon="pi pi-check"
+                  [text]="true"
+                  severity="success"
+                  size="small"
+                  (onClick)="openReceive(order)"
+                />
+                <p-button
+                  label="Cancelar"
+                  icon="pi pi-times"
+                  [text]="true"
+                  severity="danger"
+                  size="small"
+                  (onClick)="confirmCancel(order)"
+                />
+              </div>
+            }
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8 text-muted-foreground">
+          Nenhum pedido registrado.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-order-create-form
+  [(visible)]="createDialogVisible"
+  (saved)="onOrderCreated()"
+/>
+
+<app-order-process-dialog
+  [(visible)]="processDialogVisible"
+  [order]="selectedOrder()"
+  (processed)="onOrderProcessed()"
+/>
+
+<app-order-receive-dialog
+  [(visible)]="receiveDialogVisible"
+  [order]="selectedOrder()"
+  (received)="onOrderReceived($event)"
+/>

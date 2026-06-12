@@ -59,6 +59,42 @@ export const routes: Routes = [
           import('./features/research/content/content.component').then(m => m.ContentComponent),
         data: { title: 'Conteúdo' },
       },
+      {
+        path: 'inventory/estoque',
+        canActivate: [permissionGuard('Inventory.Stock.View')],
+        loadComponent: () =>
+          import('./features/inventory/stock/stock-write-off.component').then(
+            m => m.StockWriteOffComponent,
+          ),
+        data: { title: 'Estoque' },
+      },
+      {
+        path: 'inventory/materiais',
+        canActivate: [permissionGuard('Inventory.Materials.View')],
+        loadComponent: () =>
+          import('./features/inventory/materials/materials-list.component').then(
+            m => m.MaterialsListComponent,
+          ),
+        data: { title: 'Materiais' },
+      },
+      {
+        path: 'inventory/tipos',
+        canActivate: [permissionGuard('Inventory.Materials.View')],
+        loadComponent: () =>
+          import('./features/inventory/material-types/material-types-list.component').then(
+            m => m.MaterialTypesListComponent,
+          ),
+        data: { title: 'Tipos de Materiais' },
+      },
+      {
+        path: 'inventory/pedidos',
+        canActivate: [permissionGuard('Inventory.Orders.View')],
+        loadComponent: () =>
+          import('./features/inventory/orders/orders-list.component').then(
+            m => m.OrdersListComponent,
+          ),
+        data: { title: 'Pedidos de Materiais' },
+      },
     ],
   },
   {

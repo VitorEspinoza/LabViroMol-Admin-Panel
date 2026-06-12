@@ -1,0 +1,107 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [header]="dialogHeader()"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '620px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <label for="name" class="text-sm font-medium">Nome <span class="text-red-500">*</span></label>
+        <input pInputText id="name" formControlName="name" class="w-full" />
+        @if (form.get('name')?.errors?.['required'] && form.get('name')?.touched) {
+          <span class="text-xs text-red-500">Nome é obrigatório.</span>
+        }
+      </div>
+
+      @if (isEditing()) {
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <label for="typeName" class="text-sm font-medium">Tipo</label>
+          <input pInputText id="typeName" [value]="materialTypeName()" disabled class="w-full opacity-60" />
+          <span class="text-xs text-muted-foreground">O tipo do material não pode ser alterado após a criação.</span>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-1">
+          <label for="typeId" class="text-sm font-medium">Tipo <span class="text-red-500">*</span></label>
+          <p-select
+            inputId="typeId"
+            formControlName="typeId"
+            [options]="typeOptions()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione o tipo"
+            class="w-full"
+            styleClass="w-full"
+          />
+          @if (form.get('typeId')?.errors?.['required'] && form.get('typeId')?.touched) {
+            <span class="text-xs text-red-500">Tipo é obrigatório.</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="unit" class="text-sm font-medium">Unidade <span class="text-red-500">*</span></label>
+          <p-select
+            inputId="unit"
+            formControlName="unit"
+            [options]="unitOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione a unidade"
+            class="w-full"
+            styleClass="w-full"
+          />
+          @if (form.get('unit')?.errors?.['required'] && form.get('unit')?.touched) {
+            <span class="text-xs text-red-500">Unidade é obrigatória.</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="stockQuantity" class="text-sm font-medium">Quantidade Inicial <span class="text-red-500">*</span></label>
+          <p-inputnumber inputId="stockQuantity" formControlName="stockQuantity" [min]="0" [showButtons]="false" styleClass="w-full" />
+          @if (form.get('stockQuantity')?.errors?.['min'] && form.get('stockQuantity')?.touched) {
+            <span class="text-xs text-red-500">Quantidade deve ser maior ou igual a zero.</span>
+          }
+        </div>
+      }
+
+      <div class="flex flex-col gap-1" [class.md:col-span-2]="isEditing()">
+        <label for="minStock" class="text-sm font-medium">Estoque Mínimo <span class="text-red-500">*</span></label>
+        <p-inputnumber inputId="minStock" formControlName="minStock" [min]="0" [showButtons]="false" styleClass="w-full" />
+        @if (form.get('minStock')?.errors?.['min'] && form.get('minStock')?.touched) {
+          <span class="text-xs text-red-500">Estoque mínimo deve ser maior ou igual a zero.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <label for="location" class="text-sm font-medium">Localização <span class="text-red-500">*</span></label>
+        <input pInputText id="location" formControlName="location" class="w-full" />
+        @if (form.get('location')?.errors?.['required'] && form.get('location')?.touched) {
+          <span class="text-xs text-red-500">Localização é obrigatória.</span>
+        }
+      </div>
+
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        [disabled]="loadingMaterial()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

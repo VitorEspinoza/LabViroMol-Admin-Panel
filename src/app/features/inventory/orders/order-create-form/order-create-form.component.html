@@ -1,0 +1,86 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="Novo Pedido"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '560px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="flex flex-col gap-4 py-4">
+
+      <div class="flex flex-col gap-1">
+        <label for="materialId" class="text-sm font-medium">Material <span class="text-red-500">*</span></label>
+        <p-select
+          inputId="materialId"
+          formControlName="materialId"
+          [options]="materialOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          placeholder="Selecione o material"
+          class="w-full"
+          styleClass="w-full"
+        />
+        @if (form.get('materialId')?.errors?.['required'] && form.get('materialId')?.touched) {
+          <span class="text-xs text-red-500">Material é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="projectId" class="text-sm font-medium">Projeto <span class="text-red-500">*</span></label>
+        <p-select
+          inputId="projectId"
+          formControlName="projectId"
+          [options]="projectOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          placeholder="Selecione o projeto"
+          class="w-full"
+          styleClass="w-full"
+        />
+        @if (form.get('projectId')?.errors?.['required'] && form.get('projectId')?.touched) {
+          <span class="text-xs text-red-500">Projeto é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="quantity" class="text-sm font-medium">Quantidade Solicitada <span class="text-red-500">*</span></label>
+        <p-inputnumber inputId="quantity" formControlName="quantity" [min]="0" [showButtons]="false" styleClass="w-full" />
+        @if (form.get('quantity')?.errors?.['min'] && form.get('quantity')?.touched) {
+          <span class="text-xs text-red-500">Quantidade deve ser maior que zero.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="description" class="text-sm font-medium">Descrição / Justificativa <span class="text-red-500">*</span></label>
+        <textarea pTextarea id="description" formControlName="description" rows="3" class="w-full"></textarea>
+        @if (form.get('description')?.errors?.['required'] && form.get('description')?.touched) {
+          <span class="text-xs text-red-500">Descrição é obrigatória.</span>
+        }
+      </div>
+
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

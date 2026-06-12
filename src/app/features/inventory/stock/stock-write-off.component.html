@@ -1,0 +1,26 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-6">
+  <app-page-header title="Estoque" subtitle="Baixa de materiais para projetos e kits salvos." />
+
+  <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
+    <p-tablist>
+      <p-tab value="write-off">Baixa de Materiais</p-tab>
+      @if (auth.hasPermission('Inventory.Kits.View')) {
+        <p-tab value="kits">Kits Salvos</p-tab>
+      }
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel value="write-off">
+        <app-write-off-tab />
+      </p-tabpanel>
+
+      @if (auth.hasPermission('Inventory.Kits.View')) {
+        <p-tabpanel value="kits">
+          <app-kits-tab (kitLoaded)="goToWriteOffTab()" />
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
+</div>
