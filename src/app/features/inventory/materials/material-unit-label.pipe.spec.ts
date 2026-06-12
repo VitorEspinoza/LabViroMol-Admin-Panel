@@ -5,16 +5,16 @@ import { MaterialUnitLabelPipe } from './material-unit-label.pipe';
 describe('MaterialUnitLabelPipe', () => {
   const pipe = new MaterialUnitLabelPipe();
 
-  it('traduz Gram para Grama', () => {
-    expect(pipe.transform('Gram')).toBe('Grama');
+  it('traduz Gram para Grama(s)', () => {
+    expect(pipe.transform('Gram')).toBe('Grama(s)');
   });
 
-  it('traduz Milliliter para Mililitro', () => {
-    expect(pipe.transform('Milliliter')).toBe('Mililitro');
+  it('traduz Milliliter para Mililitro(s)', () => {
+    expect(pipe.transform('Milliliter')).toBe('Mililitro(s)');
   });
 
-  it('traduz Piece para Peça', () => {
-    expect(pipe.transform('Piece')).toBe('Peça');
+  it('traduz Piece para Peça(s)', () => {
+    expect(pipe.transform('Piece')).toBe('Peça(s)');
   });
 
   it('retorna string vazia para valores nulos ou vazios', () => {

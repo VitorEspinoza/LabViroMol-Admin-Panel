@@ -58,14 +58,27 @@
             }
           </td>
           <td>
-            <p-button
-              label="Adicionar"
-              icon="pi pi-plus"
-              [text]="true"
-              size="small"
-              [disabled]="material.stockQuantity <= 0"
-              (onClick)="addToCart(material)"
-            />
+            <div class="flex flex-col items-start gap-2">
+              <p-inputnumber
+                [ngModel]="getAddQuantity(material.materialId)"
+                (ngModelChange)="setAddQuantity(material.materialId, $event)"
+                [min]="1"
+                [max]="material.stockQuantity"
+                [showButtons]="true"
+                inputStyleClass="w-12 text-center"
+                styleClass="w-24"
+                [disabled]="material.stockQuantity <= 0"
+                [attr.aria-label]="'Quantidade de ' + material.name + ' a adicionar'"
+              />
+              <p-button
+                label="Adicionar"
+                icon="pi pi-plus"
+                [text]="true"
+                size="small"
+                [disabled]="material.stockQuantity <= 0"
+                (onClick)="addToCart(material)"
+              />
+            </div>
           </td>
         </tr>
       </ng-template>
@@ -81,6 +94,6 @@
   </div>
 
   <div class="lg:w-[35%] lg:sticky lg:top-6 lg:self-start">
-    <app-cart />
+    <app-cart (stockUpdated)="loadMaterials()" />
   </div>
 </div>

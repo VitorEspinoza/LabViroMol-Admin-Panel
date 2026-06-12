@@ -6,7 +6,7 @@ import { KitsService } from '../../kits/kits.service';
 import { MaterialsService } from '../../materials/materials.service';
 import { Kit, Material } from '../../../../shared/models/inventory.model';
 import { MaterialUnitLabelPipe } from '../../materials/material-unit-label.pipe';
-import { CartService } from '../pdv/cart/cart.service';
+import { CartService } from '../write-off/cart/cart.service';
 
 @Component({
   selector: 'app-kits-tab',
@@ -26,6 +26,11 @@ export class KitsTabComponent {
   protected readonly loadingKitId = signal<string | null>(null);
 
   constructor() {
+    this.loadKits();
+  }
+
+  // Permite que o componente pai (StockWriteOffComponent) force uma recarga ao trocar de aba
+  reload(): void {
     this.loadKits();
   }
 

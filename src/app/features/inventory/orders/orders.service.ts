@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.model';
@@ -8,10 +8,43 @@ import {
   CreatedResponse,
   CreateOrderRequest,
   Order,
+  OrderStatus,
   ProcessOrderRequest,
   ReceiveOrderRequest,
   UpdateOrderRequest,
 } from '../../../shared/models/inventory.model';
+
+// Shape retornado pela API (GET /api/inventory/orders — OrderSummaryViewModel)
+interface OrderSummaryApiResponse {
+  id: string;
+  materialId: string;
+  projectId: string;
+  projectName: string;
+  materialName: string;
+  materialUnit: string;
+  quantityRequested: number;
+  quantityReceived: number | null;
+  status: OrderStatus;
+  createdBy: string;
+  createdOn: string;
+}
+
+function toOrder(raw: OrderSummaryApiResponse): Order {
+  return {
+    orderId: raw.id,
+    materialId: raw.materialId,
+    materialName: raw.materialName,
+    projectId: raw.projectId,
+    projectTitle: raw.projectName,
+    requestedQuantity: raw.quantityRequested,
+    description: null,
+    status: raw.status,
+    processing: null,
+    receipt: null,
+    createdAt: raw.createdOn,
+    updatedAt: null,
+  };
+}
 
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
@@ -23,7 +56,9 @@ export class OrdersService {
     if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
     if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
     if (params.search) httpParams = httpParams.set('search', params.search);
-    return this.http.get<PagedResponse<Order>>(this.base, { params: httpParams });
+    return this.http
+      .get<PagedResponse<OrderSummaryApiResponse>>(this.base, { params: httpParams })
+      .pipe(map(res => ({ ...res, data: res.data.map(toOrder) })));
   }
 
   getOrderById(id: string): Observable<Order> {

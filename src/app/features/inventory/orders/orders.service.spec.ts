@@ -10,7 +10,6 @@ import {
   ReceiveOrderRequest,
   UpdateOrderRequest,
 } from '../../../shared/models/inventory.model';
-import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const mockOrder: Order = {
   orderId: 'ord1',
@@ -25,6 +24,21 @@ const mockOrder: Order = {
   receipt: null,
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: null,
+};
+
+// Shape retornado pela API (camelCase de OrderSummaryViewModel)
+const mockOrderSummaryApiResponse = {
+  id: 'ord1',
+  materialId: 'mat1',
+  projectId: 'proj1',
+  projectName: 'Estudo de Variantes Virais',
+  materialName: 'Álcool 70%',
+  materialUnit: 'Milliliter',
+  quantityRequested: 100,
+  quantityReceived: null,
+  status: 'Pending',
+  createdBy: 'Mock User',
+  createdOn: '2024-01-01T00:00:00Z',
 };
 
 describe('OrdersService', () => {
@@ -42,8 +56,8 @@ describe('OrdersService', () => {
   afterEach(() => http.verify());
 
   it('getOrders — mapeia PagedResponse corretamente', () => {
-    const response: PagedResponse<Order> = {
-      data: [mockOrder],
+    const response = {
+      data: [mockOrderSummaryApiResponse],
       currentPage: 1,
       pageSize: 10,
       totalPages: 1,
@@ -53,6 +67,11 @@ describe('OrdersService', () => {
     service.getOrders({ pageNumber: 1, pageSize: 10 }).subscribe(res => {
       expect(res.data.length).toBe(1);
       expect(res.data[0].orderId).toBe('ord1');
+      expect(res.data[0].materialId).toBe('mat1');
+      expect(res.data[0].projectId).toBe('proj1');
+      expect(res.data[0].projectTitle).toBe('Estudo de Variantes Virais');
+      expect(res.data[0].requestedQuantity).toBe(100);
+      expect(res.data[0].createdAt).toBe('2024-01-01T00:00:00Z');
       expect(res.data[0].status).toBe('Pending');
     });
 

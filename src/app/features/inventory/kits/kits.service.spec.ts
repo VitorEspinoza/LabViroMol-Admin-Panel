@@ -3,14 +3,14 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { KitsService } from './kits.service';
-import { CreateKitRequest, Kit, UpdateKitRequest } from '../../../shared/models/inventory.model';
-import { PagedResponse } from '../../../shared/models/pagination.model';
+import { CreateKitRequest, UpdateKitRequest } from '../../../shared/models/inventory.model';
 
-const mockKit: Kit = {
-  kitId: 'kit1',
+// Shape retornado pela API (camelCase de KitViewModel/KitItemViewModel)
+const mockKitApiResponse = {
+  id: 'kit1',
   name: 'Kit PCR Básico',
   description: 'Materiais essenciais para PCR',
-  materials: [{ materialId: 'mat1', materialName: 'Álcool 70%', quantity: 2, unit: 'Milliliter' }],
+  items: [{ materialId: 'mat1', name: 'Álcool 70%', quantity: 2, unit: 'Milliliter' }],
 };
 
 describe('KitsService', () => {
@@ -28,8 +28,8 @@ describe('KitsService', () => {
   afterEach(() => http.verify());
 
   it('getKits — mapeia PagedResponse corretamente', () => {
-    const response: PagedResponse<Kit> = {
-      data: [mockKit],
+    const response = {
+      data: [mockKitApiResponse],
       currentPage: 1,
       pageSize: 10,
       totalPages: 1,
@@ -40,6 +40,7 @@ describe('KitsService', () => {
       expect(res.data.length).toBe(1);
       expect(res.data[0].kitId).toBe('kit1');
       expect(res.data[0].materials.length).toBe(1);
+      expect(res.data[0].materials[0].materialName).toBe('Álcool 70%');
     });
 
     const req = http.expectOne(r => r.url === 'http://localhost:5085/api/inventory/kits');
@@ -52,10 +53,11 @@ describe('KitsService', () => {
     service.getKitById('kit1').subscribe(kit => {
       expect(kit.kitId).toBe('kit1');
       expect(kit.materials[0].materialId).toBe('mat1');
+      expect(kit.materials[0].materialName).toBe('Álcool 70%');
       expect(kit.materials[0].unit).toBe('Milliliter');
     });
 
-    http.expectOne('http://localhost:5085/api/inventory/kits/kit1').flush(mockKit);
+    http.expectOne('http://localhost:5085/api/inventory/kits/kit1').flush(mockKitApiResponse);
   });
 
   it('getKitById — propaga erro 404 (não encontrado)', () => {

@@ -48,6 +48,53 @@ describe('CartService', () => {
       expect(result).toBe('max-reached');
       expect(service.items()[0].quantity).toBe(1);
     });
+
+    it('adiciona um novo material com a quantidade informada', () => {
+      const result = service.addOrIncrement(makeMaterial({ stockQuantity: 100 }), 25);
+
+      expect(result).toBe('added');
+      expect(service.items()[0].quantity).toBe(25);
+    });
+
+    it('limita a quantidade informada ao estoque disponível ao adicionar', () => {
+      service.addOrIncrement(makeMaterial({ stockQuantity: 10 }), 50);
+
+      expect(service.items()[0].quantity).toBe(10);
+    });
+
+    it('incrementa pela quantidade informada quando o material já está no carrinho', () => {
+      service.addOrIncrement(makeMaterial({ stockQuantity: 100 }), 10);
+      const result = service.addOrIncrement(makeMaterial({ stockQuantity: 100 }), 5);
+
+      expect(result).toBe('incremented');
+      expect(service.items()[0].quantity).toBe(15);
+    });
+
+    it('limita o incremento pela quantidade informada ao maxQuantity', () => {
+      service.addOrIncrement(makeMaterial({ stockQuantity: 10 }), 8);
+      service.addOrIncrement(makeMaterial({ stockQuantity: 10 }), 5);
+
+      expect(service.items()[0].quantity).toBe(10);
+    });
+  });
+
+  describe('setQuantity', () => {
+    it('define a quantidade respeitando o limite de maxQuantity', () => {
+      service.addOrIncrement(makeMaterial({ stockQuantity: 10 }));
+
+      service.setQuantity('mat1', 7);
+      expect(service.items()[0].quantity).toBe(7);
+
+      service.setQuantity('mat1', 50);
+      expect(service.items()[0].quantity).toBe(10);
+    });
+
+    it('não permite quantidade menor que 1', () => {
+      service.addOrIncrement(makeMaterial({ stockQuantity: 10 }));
+
+      service.setQuantity('mat1', 0);
+      expect(service.items()[0].quantity).toBe(1);
+    });
   });
 
   describe('increment / decrement', () => {

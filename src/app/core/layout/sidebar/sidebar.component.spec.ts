@@ -141,7 +141,7 @@ describe('SidebarComponent', () => {
       expect(materiais?.visibleItems.length).toBe(4);
     });
 
-    it('deve exibir label "Estoque" (sem PDV)', () => {
+    it('deve exibir label "Estoque" (sem nome técnico interno)', () => {
       const groups = (component as any).visibleGroups() as { key: string; visibleItems: { label: string }[] }[];
       const materiais = groups.find(g => g.key === 'materiais');
       const estoque = materiais?.visibleItems.find(i => i.label.toLowerCase().includes('estoque'));

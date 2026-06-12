@@ -7,7 +7,7 @@ import { CreateMaterialTypeRequest, MaterialType } from '../../../shared/models/
 import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const mockType: MaterialType = {
-  materialTypeId: 'mt1',
+  id: 'mt1',
   name: 'Reagentes',
   active: true,
 };
@@ -37,7 +37,7 @@ describe('MaterialTypesService', () => {
 
     service.getTypes({ pageNumber: 1, pageSize: 10 }).subscribe(res => {
       expect(res.data.length).toBe(1);
-      expect(res.data[0].materialTypeId).toBe('mt1');
+      expect(res.data[0].id).toBe('mt1');
       expect(res.data[0].active).toBe(true);
     });
 

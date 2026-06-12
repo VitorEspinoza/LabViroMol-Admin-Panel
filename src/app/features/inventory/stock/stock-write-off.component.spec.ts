@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { of } from 'rxjs';
 
-import { StockPdvComponent } from './stock-pdv.component';
+import { StockWriteOffComponent } from './stock-write-off.component';
 import { MaterialsService } from '../materials/materials.service';
 import { StockService } from './stock.service';
 import { ProjectsService } from '../../research/projects/projects.service';
@@ -27,13 +27,13 @@ class MockResizeObserver {
   disconnect() {}
 }
 
-describe('StockPdvComponent', () => {
+describe('StockWriteOffComponent', () => {
   beforeAll(() => {
     vi.stubGlobal('ResizeObserver', MockResizeObserver);
   });
 
-  let fixture: ComponentFixture<StockPdvComponent>;
-  let component: StockPdvComponent;
+  let fixture: ComponentFixture<StockWriteOffComponent>;
+  let component: StockWriteOffComponent;
   let materialsServiceMock: Mocked<Pick<MaterialsService, 'getMaterials'>>;
   let stockServiceMock: Mocked<Pick<StockService, 'consumeForProject'>>;
   let projectsServiceMock: Mocked<Pick<ProjectsService, 'getProjects'>>;
@@ -42,7 +42,7 @@ describe('StockPdvComponent', () => {
 
   const setup = async () => {
     await TestBed.configureTestingModule({
-      imports: [StockPdvComponent],
+      imports: [StockWriteOffComponent],
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
@@ -54,7 +54,7 @@ describe('StockPdvComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(StockPdvComponent);
+    fixture = TestBed.createComponent(StockWriteOffComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   };
@@ -107,19 +107,19 @@ describe('StockPdvComponent', () => {
   });
 
   describe('navegação entre abas', () => {
-    it('inicia na aba "pdv"', async () => {
+    it('inicia na aba "write-off"', async () => {
       await setup();
 
-      expect((component as any).activeTab()).toBe('pdv');
+      expect((component as any).activeTab()).toBe('write-off');
     });
 
-    it('goToPdvTab volta a ativar a aba "pdv"', async () => {
+    it('goToWriteOffTab volta a ativar a aba "write-off"', async () => {
       await setup();
       (component as any).activeTab.set('kits');
 
-      (component as any).goToPdvTab();
+      (component as any).goToWriteOffTab();
 
-      expect((component as any).activeTab()).toBe('pdv');
+      expect((component as any).activeTab()).toBe('write-off');
     });
   });
 });

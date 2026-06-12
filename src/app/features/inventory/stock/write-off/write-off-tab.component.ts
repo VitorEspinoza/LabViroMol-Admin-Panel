@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
@@ -17,11 +18,11 @@ import { CartService } from './cart/cart.service';
 import { CartComponent } from './cart/cart.component';
 
 @Component({
-  selector: 'app-pdv-tab',
-  imports: [FormsModule, TableModule, Button, InputText, IconField, InputIcon, MaterialUnitLabelPipe, CartComponent],
-  templateUrl: './pdv-tab.component.html',
+  selector: 'app-write-off-tab',
+  imports: [FormsModule, TableModule, Button, InputText, InputNumber, IconField, InputIcon, MaterialUnitLabelPipe, CartComponent],
+  templateUrl: './write-off-tab.component.html',
 })
-export class PdvTabComponent {
+export class WriteOffTabComponent {
   private readonly materialsService = inject(MaterialsService);
   private readonly messageService = inject(MessageService);
   protected readonly cart = inject(CartService);
@@ -32,6 +33,9 @@ export class PdvTabComponent {
   protected readonly searchQuery = signal('');
   protected readonly first = signal(0);
   protected readonly rows = signal(10);
+
+  // Quantidade a adicionar ao carrinho, por material — padrão 1
+  private readonly addQuantities = signal<Record<string, number>>({});
 
   private readonly searchSubject = new Subject<string>();
 
@@ -47,6 +51,11 @@ export class PdvTabComponent {
 
   protected onSearchInput(event: Event): void {
     this.searchSubject.next((event.target as HTMLInputElement).value);
+  }
+
+  // Permite que o componente pai (StockWriteOffComponent) force uma recarga ao trocar de aba
+  reload(): void {
+    this.loadMaterials();
   }
 
   protected loadMaterials(event?: TableLazyLoadEvent): void {
@@ -76,21 +85,27 @@ export class PdvTabComponent {
       });
   }
 
-  protected addToCart(material: Material): void {
-    const result = this.cart.addOrIncrement(material);
+  protected getAddQuantity(materialId: string): number {
+    return this.addQuantities()[materialId] ?? 1;
+  }
 
-    if (result === 'incremented') {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Carrinho',
-        detail: `Quantidade de "${material.name}" atualizada no carrinho.`,
-      });
-    } else if (result === 'max-reached') {
+  protected setAddQuantity(materialId: string, value: number | null): void {
+    this.addQuantities.update(q => ({ ...q, [materialId]: Math.max(1, Math.floor(value ?? 1)) }));
+  }
+
+  protected addToCart(material: Material): void {
+    const quantity = this.getAddQuantity(material.materialId);
+    const result = this.cart.addOrIncrement(material, quantity);
+
+    if (result === 'max-reached') {
       this.messageService.add({
         severity: 'warn',
         summary: 'Carrinho',
         detail: `Estoque máximo de "${material.name}" já está no carrinho.`,
       });
+      return;
     }
+
+    this.setAddQuantity(material.materialId, 1);
   }
 }

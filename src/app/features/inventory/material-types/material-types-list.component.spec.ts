@@ -12,7 +12,7 @@ import { CreatedResponse, MaterialType } from '../../../shared/models/inventory.
 import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const makeType = (overrides: Partial<MaterialType> = {}): MaterialType => ({
-  materialTypeId: 'mt1',
+  id: 'mt1',
   name: 'Reagentes',
   active: true,
   ...overrides,
@@ -115,7 +115,7 @@ describe('MaterialTypesListComponent', () => {
 
     it('filtra os tipos localmente por nome após o debounce', async () => {
       materialTypesServiceMock.getTypes = vi.fn().mockReturnValue(
-        of(pagedResponse([makeType({ materialTypeId: 'mt1', name: 'Reagentes' }), makeType({ materialTypeId: 'mt2', name: 'Vidrarias' })])),
+        of(pagedResponse([makeType({ id: 'mt1', name: 'Reagentes' }), makeType({ id: 'mt2', name: 'Vidrarias' })])),
       );
       await setup();
 
@@ -130,7 +130,7 @@ describe('MaterialTypesListComponent', () => {
 
     it('retorna todos os tipos quando a busca está vazia', async () => {
       materialTypesServiceMock.getTypes = vi.fn().mockReturnValue(
-        of(pagedResponse([makeType({ materialTypeId: 'mt1', name: 'Reagentes' }), makeType({ materialTypeId: 'mt2', name: 'Vidrarias' })])),
+        of(pagedResponse([makeType({ id: 'mt1', name: 'Reagentes' }), makeType({ id: 'mt2', name: 'Vidrarias' })])),
       );
       await setup();
 
@@ -219,7 +219,7 @@ describe('MaterialTypesListComponent', () => {
       materialTypesServiceMock.deactivateType = vi.fn().mockReturnValue(subject.asObservable());
       await setup();
 
-      (component as any).toggleActive(makeType({ materialTypeId: 'mt1', active: true }));
+      (component as any).toggleActive(makeType({ id: 'mt1', active: true }));
 
       expect((component as any).types()[0].active).toBe(false);
       expect(materialTypesServiceMock.deactivateType).toHaveBeenCalledWith('mt1');
@@ -231,11 +231,11 @@ describe('MaterialTypesListComponent', () => {
 
     it('chama activateType quando o tipo está inativo', async () => {
       materialTypesServiceMock.getTypes = vi.fn().mockReturnValue(
-        of(pagedResponse([makeType({ materialTypeId: 'mt1', active: false })])),
+        of(pagedResponse([makeType({ id: 'mt1', active: false })])),
       );
       await setup();
 
-      (component as any).toggleActive(makeType({ materialTypeId: 'mt1', active: false }));
+      (component as any).toggleActive(makeType({ id: 'mt1', active: false }));
 
       expect((component as any).types()[0].active).toBe(true);
       expect(materialTypesServiceMock.activateType).toHaveBeenCalledWith('mt1');
@@ -250,7 +250,7 @@ describe('MaterialTypesListComponent', () => {
       const messageService = fixture.debugElement.injector.get(MessageService);
       const addSpy = vi.spyOn(messageService, 'add');
 
-      (component as any).toggleActive(makeType({ materialTypeId: 'mt1', active: true }));
+      (component as any).toggleActive(makeType({ id: 'mt1', active: true }));
 
       expect((component as any).types()[0].active).toBe(true);
       expect(addSpy).toHaveBeenCalledWith(

@@ -54,7 +54,7 @@ describe('CartComponent', () => {
   let fixture: ComponentFixture<CartComponent>;
   let component: CartComponent;
   let cartService: CartService;
-  let stockServiceMock: Mocked<Pick<StockService, 'consumeForProject'>>;
+  let stockServiceMock: Mocked<Pick<StockService, 'consumeForProject' | 'removeException'>>;
   let projectsServiceMock: Mocked<Pick<ProjectsService, 'getProjects'>>;
   let authServiceMock: { hasPermission: ReturnType<typeof vi.fn> };
 
@@ -81,6 +81,7 @@ describe('CartComponent', () => {
   beforeEach(() => {
     stockServiceMock = {
       consumeForProject: vi.fn().mockReturnValue(of(undefined)),
+      removeException: vi.fn().mockReturnValue(of(undefined)),
     };
     projectsServiceMock = {
       getProjects: vi.fn().mockReturnValue(of(pagedProjects([makeProject()]))),
@@ -212,6 +213,57 @@ describe('CartComponent', () => {
       (component as any).confirmWriteOff();
 
       expect(stockServiceMock.consumeForProject).not.toHaveBeenCalled();
+      expect((component as any).confirmForm.get('projectId').touched).toBe(true);
+    });
+
+    it('não confirma baixa sem projeto quando a justificativa está vazia ou é muito curta', async () => {
+      await setup();
+      cartService.items.set([makeCartItem()]);
+
+      (component as any).openConfirmDialog();
+      (component as any).toggleWithoutProject(true);
+      (component as any).confirmWriteOff();
+
+      expect(stockServiceMock.removeException).not.toHaveBeenCalled();
+      expect((component as any).confirmForm.get('reason').touched).toBe(true);
+
+      (component as any).confirmForm.patchValue({ reason: 'curta' });
+      (component as any).confirmWriteOff();
+
+      expect(stockServiceMock.removeException).not.toHaveBeenCalled();
+    });
+
+    it('confirma baixa sem projeto enviando a justificativa como reason', async () => {
+      await setup();
+      cartService.items.set([makeCartItem({ materialId: 'mat1', quantity: 2 })]);
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      const addSpy = vi.spyOn(messageService, 'add');
+
+      (component as any).openConfirmDialog();
+      (component as any).toggleWithoutProject(true);
+      (component as any).confirmForm.patchValue({ reason: 'Material danificado no laboratório' });
+      (component as any).confirmWriteOff();
+
+      expect(stockServiceMock.removeException).toHaveBeenCalledWith('mat1', {
+        quantity: 2,
+        reason: 'Material danificado no laboratório',
+      });
+      expect(stockServiceMock.consumeForProject).not.toHaveBeenCalled();
+      expect(cartService.items()).toEqual([]);
+      expect((component as any).confirmDialogVisible()).toBe(false);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('toggleWithoutProject volta a exigir projeto ao desmarcar a opção', async () => {
+      await setup();
+      cartService.items.set([makeCartItem()]);
+
+      (component as any).openConfirmDialog();
+      (component as any).toggleWithoutProject(true);
+      (component as any).toggleWithoutProject(false);
+      (component as any).confirmWriteOff();
+
+      expect(stockServiceMock.removeException).not.toHaveBeenCalled();
       expect((component as any).confirmForm.get('projectId').touched).toBe(true);
     });
   });

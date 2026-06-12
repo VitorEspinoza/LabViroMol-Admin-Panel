@@ -63,8 +63,8 @@ export const routes: Routes = [
         path: 'inventory/estoque',
         canActivate: [permissionGuard('Inventory.Stock.View')],
         loadComponent: () =>
-          import('./features/inventory/stock/stock-pdv.component').then(
-            m => m.StockPdvComponent,
+          import('./features/inventory/stock/stock-write-off.component').then(
+            m => m.StockWriteOffComponent,
           ),
         data: { title: 'Estoque' },
       },

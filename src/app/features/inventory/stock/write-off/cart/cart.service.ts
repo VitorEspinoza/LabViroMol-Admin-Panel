@@ -16,13 +16,14 @@ export interface LoadKitResult {
   ignored: string[];
 }
 
-// Estado do carrinho — provido por instância em StockPdvComponent (não persiste entre navegações)
+// Estado do carrinho — provido por instância em StockWriteOffComponent (não persiste entre navegações)
 @Injectable()
 export class CartService {
   readonly items = signal<CartItem[]>([]);
   readonly count = computed(() => this.items().length);
 
-  addOrIncrement(material: Material): AddToCartResult {
+  addOrIncrement(material: Material, quantity = 1): AddToCartResult {
+    const qty = Math.max(1, Math.floor(quantity));
     const existing = this.items().find(i => i.materialId === material.materialId);
 
     if (!existing) {
@@ -33,7 +34,7 @@ export class CartService {
           materialName: material.name,
           unit: material.unit,
           maxQuantity: material.stockQuantity,
-          quantity: 1,
+          quantity: Math.min(qty, material.stockQuantity),
         },
       ]);
       return 'added';
@@ -42,7 +43,9 @@ export class CartService {
     if (existing.quantity >= existing.maxQuantity) return 'max-reached';
 
     this.items.update(items =>
-      items.map(i => (i.materialId === material.materialId ? { ...i, quantity: i.quantity + 1 } : i)),
+      items.map(i =>
+        i.materialId === material.materialId ? { ...i, quantity: Math.min(i.quantity + qty, i.maxQuantity) } : i,
+      ),
     );
     return 'incremented';
   }
@@ -56,6 +59,17 @@ export class CartService {
   decrement(materialId: string): void {
     this.items.update(items =>
       items.map(i => (i.materialId === materialId && i.quantity > 1 ? { ...i, quantity: i.quantity - 1 } : i)),
+    );
+  }
+
+  // Define a quantidade diretamente (ex: digitada pelo usuário), respeitando os limites de 1 e maxQuantity
+  setQuantity(materialId: string, quantity: number): void {
+    this.items.update(items =>
+      items.map(i =>
+        i.materialId === materialId
+          ? { ...i, quantity: Math.min(Math.max(1, Math.floor(quantity)), i.maxQuantity) }
+          : i,
+      ),
     );
   }
 

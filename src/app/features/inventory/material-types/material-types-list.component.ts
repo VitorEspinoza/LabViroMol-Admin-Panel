@@ -123,16 +123,16 @@ export class MaterialTypesListComponent {
   protected toggleActive(type: MaterialType): void {
     const wasActive = type.active;
     this.types.update(list =>
-      list.map(t => (t.materialTypeId === type.materialTypeId ? { ...t, active: !wasActive } : t)),
+      list.map(t => (t.id === type.id ? { ...t, active: !wasActive } : t)),
     );
     const action$ = wasActive
-      ? this.materialTypesService.deactivateType(type.materialTypeId)
-      : this.materialTypesService.activateType(type.materialTypeId);
+      ? this.materialTypesService.deactivateType(type.id)
+      : this.materialTypesService.activateType(type.id);
 
     action$.subscribe({
       error: err => {
         this.types.update(list =>
-          list.map(t => (t.materialTypeId === type.materialTypeId ? { ...t, active: wasActive } : t)),
+          list.map(t => (t.id === type.id ? { ...t, active: wasActive } : t)),
         );
         this.messageService.add({
           severity: 'error',

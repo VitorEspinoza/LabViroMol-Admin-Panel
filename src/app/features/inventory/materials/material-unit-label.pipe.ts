@@ -2,9 +2,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { MaterialUnit } from '../../../shared/models/inventory.model';
 
 const MATERIAL_UNIT_LABELS: Record<MaterialUnit, string> = {
-  Gram: 'Grama',
-  Milliliter: 'Mililitro',
-  Piece: 'Peça',
+  Gram: 'Grama(s)',
+  Milliliter: 'Mililitro(s)',
+  Piece: 'Peça(s)',
 };
 
 export const MATERIAL_UNIT_OPTIONS: { label: string; value: MaterialUnit }[] = [

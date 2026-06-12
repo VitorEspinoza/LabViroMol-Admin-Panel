@@ -1,10 +1,14 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, output, signal } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { MessageService } from 'primeng/api';
+
+import { Checkbox } from 'primeng/checkbox';
+import { Textarea } from 'primeng/textarea';
 
 import { CartItem, CartService } from './cart.service';
 import { StockService } from '../../stock.service';
@@ -19,7 +23,7 @@ type WriteOffResult =
 
 @Component({
   selector: 'app-cart',
-  imports: [ReactiveFormsModule, Button, Dialog, Select, MaterialUnitLabelPipe, SaveKitDialogComponent],
+  imports: [FormsModule, ReactiveFormsModule, Button, Checkbox, Dialog, InputNumber, Select, Textarea, MaterialUnitLabelPipe, SaveKitDialogComponent],
   templateUrl: './cart.component.html',
 })
 export class CartComponent {
@@ -33,14 +37,21 @@ export class CartComponent {
   protected readonly items = this.cart.items;
   protected readonly count = this.cart.count;
 
+  // Emitido após uma baixa confirmada, para que o WriteOffTabComponent recarregue os estoques exibidos
+  readonly stockUpdated = output<void>();
+
   protected readonly confirmDialogVisible = signal(false);
   protected readonly confirming = signal(false);
   protected readonly projectOptions = signal<{ label: string; value: string }[]>([]);
 
   protected readonly saveKitDialogVisible = signal(false);
 
+  // Caso de exceção: baixa sem vincular a um projeto, exige justificativa
+  protected readonly withoutProject = signal(false);
+
   protected readonly confirmForm = this.fb.nonNullable.group({
     projectId: ['', Validators.required],
+    reason: [''],
   });
 
   protected increment(materialId: string): void {
@@ -51,18 +62,47 @@ export class CartComponent {
     this.cart.decrement(materialId);
   }
 
+  protected setQuantity(materialId: string, quantity: number | null): void {
+    this.cart.setQuantity(materialId, quantity ?? 1);
+  }
+
   protected remove(materialId: string): void {
     this.cart.remove(materialId);
   }
 
   protected openConfirmDialog(): void {
-    this.confirmForm.reset({ projectId: '' });
+    this.confirmForm.reset({ projectId: '', reason: '' });
+    this.withoutProject.set(false);
+    this.applyConfirmValidators();
     this.loadProjectOptions();
     this.confirmDialogVisible.set(true);
   }
 
   protected onCancelConfirm(): void {
     this.confirmDialogVisible.set(false);
+  }
+
+  // Alterna entre vincular a um projeto (padrão) e remover sem projeto, mediante justificativa
+  protected toggleWithoutProject(value: boolean): void {
+    this.withoutProject.set(value);
+    this.confirmForm.patchValue({ projectId: '', reason: '' });
+    this.applyConfirmValidators();
+  }
+
+  private applyConfirmValidators(): void {
+    const projectIdControl = this.confirmForm.controls.projectId;
+    const reasonControl = this.confirmForm.controls.reason;
+
+    if (this.withoutProject()) {
+      projectIdControl.clearValidators();
+      reasonControl.setValidators([Validators.required, Validators.minLength(10)]);
+    } else {
+      projectIdControl.setValidators([Validators.required]);
+      reasonControl.clearValidators();
+    }
+
+    projectIdControl.updateValueAndValidity();
+    reasonControl.updateValueAndValidity();
   }
 
   protected openSaveKitDialog(): void {
@@ -86,16 +126,21 @@ export class CartComponent {
       return;
     }
 
-    const projectId = this.confirmForm.getRawValue().projectId;
+    const { projectId, reason } = this.confirmForm.getRawValue();
     const items = this.items();
+    const withoutProject = this.withoutProject();
 
     this.confirming.set(true);
-    const requests = items.map(item =>
-      this.stockService.consumeForProject(item.materialId, { quantity: item.quantity, projectId }).pipe(
+    const requests = items.map(item => {
+      const writeOff = withoutProject
+        ? this.stockService.removeException(item.materialId, { quantity: item.quantity, reason })
+        : this.stockService.consumeForProject(item.materialId, { quantity: item.quantity, projectId });
+
+      return writeOff.pipe(
         map((): WriteOffResult => ({ item, success: true })),
         catchError(error => of<WriteOffResult>({ item, success: false, error })),
-      ),
-    );
+      );
+    });
 
     forkJoin(requests).subscribe(results => {
       this.confirming.set(false);
@@ -110,6 +155,7 @@ export class CartComponent {
           summary: 'Sucesso',
           detail: `Baixa confirmada para ${succeeded.length} ${succeeded.length === 1 ? 'item' : 'itens'}.`,
         });
+        this.stockUpdated.emit();
       }
 
       failed.forEach(r => {

@@ -29,7 +29,15 @@
               [attr.aria-label]="'Diminuir quantidade de ' + item.materialName"
               (onClick)="decrement(item.materialId)"
             />
-            <span class="text-sm font-semibold w-8 text-center">{{ item.quantity }}</span>
+            <p-inputnumber
+              [ngModel]="item.quantity"
+              (ngModelChange)="setQuantity(item.materialId, $event)"
+              [min]="1"
+              [max]="item.maxQuantity"
+              [showButtons]="false"
+              inputStyleClass="w-12 text-center text-sm"
+              [attr.aria-label]="'Quantidade de ' + item.materialName"
+            />
             <p-button
               icon="pi pi-plus"
               [text]="true"
@@ -71,6 +79,7 @@
   header="Confirmar Baixa"
   [modal]="true"
   [closable]="true"
+  appendTo="body"
   [style]="{ width: '95vw', maxWidth: '480px' }"
 >
   <form [formGroup]="confirmForm" novalidate>
@@ -85,24 +94,62 @@
         }
       </ul>
 
-      <div class="flex flex-col gap-1">
-        <label for="confirmProjectId" class="text-sm font-medium">Projeto <span class="text-red-500">*</span></label>
-        <p-select
-          inputId="confirmProjectId"
-          formControlName="projectId"
-          [options]="projectOptions()"
-          optionLabel="label"
-          optionValue="value"
-          [filter]="true"
-          filterBy="label"
-          placeholder="Selecione o projeto"
-          class="w-full"
-          styleClass="w-full"
+      @if (!withoutProject()) {
+        <div class="flex flex-col gap-1">
+          <label for="confirmProjectId" class="text-sm font-medium">Projeto <span class="text-red-500">*</span></label>
+          <p-select
+            inputId="confirmProjectId"
+            formControlName="projectId"
+            [options]="projectOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            filterBy="label"
+            placeholder="Selecione o projeto"
+            appendTo="body"
+            class="w-full"
+            styleClass="w-full"
+          />
+          @if (confirmForm.get('projectId')?.errors?.['required'] && confirmForm.get('projectId')?.touched) {
+            <span class="text-xs text-red-500">Projeto é obrigatório.</span>
+          }
+        </div>
+      }
+
+      <div class="flex items-start gap-2">
+        <p-checkbox
+          inputId="withoutProject"
+          [binary]="true"
+          [ngModel]="withoutProject()"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="toggleWithoutProject($event)"
         />
-        @if (confirmForm.get('projectId')?.errors?.['required'] && confirmForm.get('projectId')?.touched) {
-          <span class="text-xs text-red-500">Projeto é obrigatório.</span>
-        }
+        <label for="withoutProject" class="text-sm">
+          Dar baixa sem vincular a um projeto
+          <span class="block text-xs text-muted-foreground">
+            Caso de exceção — exige uma justificativa para a remoção do estoque.
+          </span>
+        </label>
       </div>
+
+      @if (withoutProject()) {
+        <div class="flex flex-col gap-1">
+          <label for="confirmReason" class="text-sm font-medium">Justificativa <span class="text-red-500">*</span></label>
+          <textarea
+            pTextarea
+            id="confirmReason"
+            formControlName="reason"
+            rows="3"
+            class="w-full"
+            placeholder="Descreva o motivo da remoção do estoque sem vínculo com um projeto (mínimo 10 caracteres)."
+          ></textarea>
+          @if (confirmForm.get('reason')?.errors?.['required'] && confirmForm.get('reason')?.touched) {
+            <span class="text-xs text-red-500">Justificativa é obrigatória.</span>
+          } @else if (confirmForm.get('reason')?.errors?.['minlength'] && confirmForm.get('reason')?.touched) {
+            <span class="text-xs text-red-500">A justificativa deve ter no mínimo 10 caracteres.</span>
+          }
+        </div>
+      }
     </div>
   </form>
 

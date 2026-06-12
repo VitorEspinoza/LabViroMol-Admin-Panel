@@ -5,7 +5,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type Mocked
 import { of } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
-import { PdvTabComponent } from './pdv-tab.component';
+import { WriteOffTabComponent } from './write-off-tab.component';
 import { MaterialsService } from '../../materials/materials.service';
 import { StockService } from '../stock.service';
 import { ProjectsService } from '../../../research/projects/projects.service';
@@ -40,13 +40,13 @@ class MockResizeObserver {
   disconnect() {}
 }
 
-describe('PdvTabComponent', () => {
+describe('WriteOffTabComponent', () => {
   beforeAll(() => {
     vi.stubGlobal('ResizeObserver', MockResizeObserver);
   });
 
-  let fixture: ComponentFixture<PdvTabComponent>;
-  let component: PdvTabComponent;
+  let fixture: ComponentFixture<WriteOffTabComponent>;
+  let component: WriteOffTabComponent;
   let cartService: CartService;
   let materialsServiceMock: Mocked<Pick<MaterialsService, 'getMaterials'>>;
   let stockServiceMock: Mocked<Pick<StockService, 'consumeForProject'>>;
@@ -55,7 +55,7 @@ describe('PdvTabComponent', () => {
 
   const setup = async () => {
     await TestBed.configureTestingModule({
-      imports: [PdvTabComponent],
+      imports: [WriteOffTabComponent],
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
@@ -68,7 +68,7 @@ describe('PdvTabComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PdvTabComponent);
+    fixture = TestBed.createComponent(WriteOffTabComponent);
     component = fixture.componentInstance;
     cartService = fixture.debugElement.injector.get(CartService);
     fixture.detectChanges();
@@ -135,7 +135,7 @@ describe('PdvTabComponent', () => {
       expect(addSpy).not.toHaveBeenCalled();
     });
 
-    it('incrementa a quantidade e exibe um toast informativo quando o item já está no carrinho', async () => {
+    it('incrementa a quantidade sem exibir toast quando o item já está no carrinho', async () => {
       await setup();
       const messageService = fixture.debugElement.injector.get(MessageService);
       const addSpy = vi.spyOn(messageService, 'add');
@@ -145,7 +145,7 @@ describe('PdvTabComponent', () => {
       (component as any).addToCart(material);
 
       expect(cartService.items()[0].quantity).toBe(2);
-      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info' }));
+      expect(addSpy).not.toHaveBeenCalled();
     });
 
     it('exibe um toast de aviso quando o estoque máximo já está no carrinho', async () => {
@@ -159,6 +159,17 @@ describe('PdvTabComponent', () => {
 
       expect(cartService.items()[0].quantity).toBe(1);
       expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
+    });
+
+    it('adiciona com a quantidade definida e reseta o seletor para 1 após adicionar', async () => {
+      await setup();
+      const material = makeMaterial({ materialId: 'mat1', stockQuantity: 100 });
+
+      (component as any).setAddQuantity('mat1', 25);
+      (component as any).addToCart(material);
+
+      expect(cartService.items()[0].quantity).toBe(25);
+      expect((component as any).getAddQuantity('mat1')).toBe(1);
     });
   });
 
