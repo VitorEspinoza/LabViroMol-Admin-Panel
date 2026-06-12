@@ -77,6 +77,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Tipos de Materiais' },
       },
+      {
+        path: 'inventory/pedidos',
+        canActivate: [permissionGuard('Inventory.Orders.View')],
+        loadComponent: () =>
+          import('./features/inventory/orders/orders-list.component').then(
+            m => m.OrdersListComponent,
+          ),
+        data: { title: 'Pedidos de Materiais' },
+      },
     ],
   },
   {

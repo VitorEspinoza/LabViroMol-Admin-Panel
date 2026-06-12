@@ -1,0 +1,43 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="Receber Pedido"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '480px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="flex flex-col gap-4 py-4">
+      <div class="flex flex-col gap-1">
+        <label for="quantityReceived" class="text-sm font-medium">Quantidade Recebida <span class="text-red-500">*</span></label>
+        <p-inputnumber inputId="quantityReceived" formControlName="quantityReceived" [min]="0" [showButtons]="false" styleClass="w-full" />
+        @if (form.get('quantityReceived')?.errors?.['min'] && form.get('quantityReceived')?.touched) {
+          <span class="text-xs text-red-500">Quantidade deve ser maior que zero.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="notes" class="text-sm font-medium">Notas de Recebimento</label>
+        <textarea pTextarea id="notes" formControlName="notes" rows="3" class="w-full"></textarea>
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Receber"
+        [loading]="saving()"
+        (onClick)="onReceive()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
