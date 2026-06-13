@@ -1,0 +1,67 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="Nova Solicitação de Manutenção"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '560px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="flex flex-col gap-4 py-4">
+
+      <div class="flex flex-col gap-1">
+        <label for="equipmentId" class="text-sm font-medium">Equipamento <span class="text-red-500">*</span></label>
+        <p-select
+          inputId="equipmentId"
+          formControlName="equipmentId"
+          [options]="equipmentOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          placeholder="Selecione o equipamento"
+          class="w-full"
+          styleClass="w-full"
+        />
+        @if (form.get('equipmentId')?.errors?.['required'] && form.get('equipmentId')?.touched) {
+          <span class="text-xs text-red-500">Equipamento é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="description" class="text-sm font-medium">Descrição <span class="text-red-500">*</span></label>
+        <textarea pTextarea id="description" formControlName="description" rows="3" class="w-full"></textarea>
+        @if (form.get('description')?.errors?.['required'] && form.get('description')?.touched) {
+          <span class="text-xs text-red-500">Descrição é obrigatória.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="problemDescription" class="text-sm font-medium">Problema <span class="text-red-500">*</span></label>
+        <textarea pTextarea id="problemDescription" formControlName="problemDescription" rows="3" class="w-full"></textarea>
+        @if (form.get('problemDescription')?.errors?.['required'] && form.get('problemDescription')?.touched) {
+          <span class="text-xs text-red-500">Problema é obrigatório.</span>
+        }
+      </div>
+
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

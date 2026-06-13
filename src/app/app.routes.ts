@@ -95,6 +95,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Pedidos de Materiais' },
       },
+      {
+        path: 'assets/equipamentos',
+        canActivate: [permissionGuard('Assets.Equipments.View')],
+        loadComponent: () =>
+          import('./features/assets/equipments/equipments-page.component').then(
+            m => m.EquipmentsPageComponent,
+          ),
+        data: { title: 'Equipamentos' },
+      },
     ],
   },
   {

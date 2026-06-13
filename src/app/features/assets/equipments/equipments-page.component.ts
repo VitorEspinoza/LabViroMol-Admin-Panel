@@ -1,0 +1,20 @@
+import { Component, inject, signal } from '@angular/core';
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
+import { Toast } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { AuthService } from '../../../core/auth/auth.service';
+import { EquipmentsListComponent } from './equipments-list/equipments-list.component';
+import { MaintenanceListComponent } from '../maintenance/maintenance-list/maintenance-list.component';
+
+@Component({
+  selector: 'app-equipments-page',
+  imports: [Tabs, TabList, Tab, TabPanels, TabPanel, Toast, PageHeaderComponent, EquipmentsListComponent, MaintenanceListComponent],
+  templateUrl: './equipments-page.component.html',
+  providers: [MessageService],
+})
+export class EquipmentsPageComponent {
+  protected readonly auth = inject(AuthService);
+  protected readonly activeTab = signal<string | number | undefined>('equipments');
+}
