@@ -9,10 +9,12 @@ import { Button } from 'primeng/button';
 import { AuthService } from '../../auth/auth.service';
 import { MyAccountComponent } from './my-account/my-account.component';
 import { MyPermissionsComponent } from './my-permissions/my-permissions.component';
+import { NotificationPanelComponent } from '../../../features/notifications/notification-panel/notification-panel.component';
+import { NotificationsService } from '../../../features/notifications/notifications.service';
 
 @Component({
   selector: 'app-topbar',
-  imports: [Button, Menu, Avatar, MyAccountComponent, MyPermissionsComponent],
+  imports: [Button, Menu, Avatar, MyAccountComponent, MyPermissionsComponent, NotificationPanelComponent],
   providers: [MessageService],
   templateUrl: './topbar.component.html',
 })
@@ -21,8 +23,10 @@ export class TopbarComponent {
 
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
+  protected readonly notificationsService = inject(NotificationsService);
 
   private readonly userMenuRef = viewChild.required<Menu>('userMenu');
+  private readonly notificationPanelRef = viewChild.required<NotificationPanelComponent>('notificationPanel');
 
   protected readonly pageTitle = signal('');
   protected readonly accountDialogVisible = signal(false);
@@ -43,6 +47,11 @@ export class TopbarComponent {
     const user = this.auth.currentUser();
     if (!user) return '';
     return `${user.firstName} ${user.lastName}`;
+  });
+
+  protected readonly unreadBadge = computed(() => {
+    const count = this.notificationsService.unreadCount();
+    return count > 0 ? count.toString() : undefined;
   });
 
   protected readonly menuItems = computed<MenuItem[]>(() => [
@@ -78,6 +87,10 @@ export class TopbarComponent {
 
   protected openUserMenu(event: Event): void {
     this.userMenuRef().toggle(event);
+  }
+
+  protected openNotifications(event: Event): void {
+    this.notificationPanelRef().toggle(event);
   }
 
   protected signOut(): void {

@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -31,6 +32,8 @@ import { MaterialUnitLabelPipe } from './material-unit-label.pipe';
 export class MaterialsListComponent {
   private readonly materialsService = inject(MaterialsService);
   private readonly messageService = inject(MessageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
 
   protected readonly materials = signal<Material[]>([]);
@@ -41,6 +44,7 @@ export class MaterialsListComponent {
   protected readonly searchQuery = signal('');
   protected readonly first = signal(0);
   protected readonly rows = signal(10);
+  protected readonly highlightedMaterialId = signal<string | null>(null);
 
   private readonly searchSubject = new Subject<string>();
   private sortField: string | null = null;
@@ -54,6 +58,23 @@ export class MaterialsListComponent {
         this.first.set(0);
         this.loadMaterials();
       });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const highlightId = params.get('highlight');
+      if (!highlightId) return;
+
+      this.materialsService.getMaterialById(highlightId).subscribe({
+        next: material => {
+          this.highlightedMaterialId.set(material.materialId);
+          this.searchQuery.set(material.name);
+          this.first.set(0);
+          this.loadMaterials();
+          setTimeout(() => this.highlightedMaterialId.set(null), 3000);
+        },
+        error: () => {},
+      });
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    });
   }
 
   protected onSearchInput(event: Event): void {

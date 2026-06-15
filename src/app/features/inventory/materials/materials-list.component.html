@@ -17,6 +17,7 @@
         type="text"
         placeholder="Buscar por nome, tipo, unidade ou localização..."
         class="w-full"
+        [value]="searchQuery()"
         (input)="onSearchInput($event)"
       />
     </p-iconfield>
@@ -47,7 +48,13 @@
     </ng-template>
 
     <ng-template pTemplate="body" let-material>
-      <tr>
+      <tr
+        [class]="
+          material.materialId === highlightedMaterialId()
+            ? 'transition-colors duration-1000 bg-primary/10'
+            : 'transition-colors duration-1000'
+        "
+      >
         <td>
           <span class="font-semibold">{{ material.name }}</span>
         </td>

@@ -1,0 +1,51 @@
+<p-toast position="bottom-right" />
+
+<p-popover #panel [style]="{ width: '24rem' }">
+  <div class="flex flex-col gap-3 w-full max-h-[28rem]">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="text-base font-semibold text-foreground">Notificações</h3>
+      @if (notificationsService.notifications().length > 0) {
+        <p-button label="Marcar todas como lidas" [text]="true" size="small" (click)="dismissAll()" />
+      }
+    </div>
+
+    <div class="flex flex-col gap-2 overflow-y-auto">
+      @if (notificationsService.loading()) {
+        <p-skeleton height="4rem" />
+        <p-skeleton height="4rem" />
+        <p-skeleton height="4rem" />
+      } @else if (notificationsService.notifications().length === 0) {
+        <p class="text-sm text-muted-foreground text-center py-4">
+          Você está em dia! Nenhuma notificação.
+        </p>
+      } @else {
+        @for (notification of notificationsService.notifications(); track notification.id) {
+          <div
+            class="flex items-start gap-2 p-2 rounded-lg bg-primary/5"
+            [class.cursor-pointer]="routeFor(notification)"
+            [class.hover:bg-primary/10]="routeFor(notification)"
+            (click)="open(notification)"
+          >
+            <span class="mt-1.5 size-2 rounded-full bg-primary shrink-0" aria-hidden="true"></span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-foreground truncate">{{ notification.title }}</p>
+              <p class="text-sm text-muted-foreground line-clamp-2">{{ notification.message }}</p>
+              <p class="text-xs text-muted-foreground mt-1">
+                {{ notification.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+              </p>
+            </div>
+            <p-button
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              severity="secondary"
+              [attr.aria-label]="'Descartar notificação: ' + notification.title"
+              (click)="$event.stopPropagation(); dismiss(notification.id)"
+            />
+          </div>
+        }
+      }
+    </div>
+  </div>
+</p-popover>

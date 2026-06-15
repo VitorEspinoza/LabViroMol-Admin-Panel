@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { beforeAll, beforeEach, afterEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { of } from 'rxjs';
 
@@ -232,6 +232,43 @@ describe('MaterialsListComponent', () => {
       (component as any).onFormSaved();
 
       expect(materialsServiceMock.getMaterials).toHaveBeenCalled();
+    });
+  });
+
+  describe('destaque a partir de notificação (query param highlight)', () => {
+    it('busca o material, filtra pelo nome e aplica destaque temporário na linha', async () => {
+      vi.useFakeTimers();
+
+      await TestBed.configureTestingModule({
+        imports: [MaterialsListComponent],
+        providers: [
+          provideNoopAnimations(),
+          provideRouter([]),
+          {
+            provide: ActivatedRoute,
+            useValue: { queryParamMap: of(convertToParamMap({ highlight: 'mat1' })) },
+          },
+          { provide: MaterialsService, useValue: materialsServiceMock },
+          { provide: MaterialTypesService, useValue: materialTypesServiceMock },
+          { provide: AuthService, useValue: authServiceMock },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(MaterialsListComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(materialsServiceMock.getMaterialById).toHaveBeenCalledWith('mat1');
+      expect((component as any).highlightedMaterialId()).toBe('mat1');
+      expect((component as any).searchQuery()).toBe('Álcool 70%');
+      expect(materialsServiceMock.getMaterials).toHaveBeenCalledWith(
+        expect.objectContaining({ search: 'Álcool 70%' }),
+      );
+
+      vi.advanceTimersByTime(3000);
+      expect((component as any).highlightedMaterialId()).toBeNull();
+
+      vi.useRealTimers();
     });
   });
 });

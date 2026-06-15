@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -36,6 +37,8 @@ import { AttachTermDialogComponent } from './attach-term-dialog/attach-term-dial
 export class SchedulesListComponent {
   private readonly schedulesService = inject(SchedulesService);
   private readonly messageService = inject(MessageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
 
   protected readonly schedules = signal<Schedule[]>([]);
@@ -64,6 +67,17 @@ export class SchedulesListComponent {
         this.first.set(0);
         this.loadSchedules();
       });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const highlightId = params.get('highlight');
+      if (!highlightId) return;
+
+      this.schedulesService.getScheduleById(highlightId).subscribe({
+        next: schedule => this.openDetail(schedule),
+        error: () => {},
+      });
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    });
   }
 
   protected onSearchInput(event: Event): void {
