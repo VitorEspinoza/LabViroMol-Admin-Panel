@@ -20,7 +20,7 @@
   </div>
 
   <p-table
-    [value]="filteredSchedules()"
+    [value]="schedules()"
     [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
@@ -28,6 +28,7 @@
     [first]="first()"
     [totalRecords]="totalRecords()"
     (onLazyLoad)="loadSchedules($event)"
+    [sortMode]="'single'"
     [scrollable]="true"
     styleClass="p-datatable-sm"
   >
@@ -35,9 +36,9 @@
       <tr>
         <th>Usuário</th>
         <th>Descrição</th>
-        <th>Data</th>
+        <th pSortableColumn="date">Data <p-sortIcon field="date" /></th>
         <th>Horário</th>
-        <th>Status</th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
         <th>Ações</th>
       </tr>
     </ng-template>
@@ -49,7 +50,10 @@
         </td>
         <td class="max-w-xs truncate">{{ schedule.projectTitle }}</td>
         <td>{{ schedule.scheduling.date | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ schedule.scheduling.time }}</td>
+        <td>
+          {{ schedule.scheduling.startDateHour | date: 'HH:mm' }} -
+          {{ schedule.scheduling.endDateHour | date: 'HH:mm' }}
+        </td>
         <td>
           <p-tag [value]="statusLabel(schedule.status)" [severity]="statusSeverity(schedule.status)" />
         </td>
@@ -65,7 +69,7 @@
                   [rounded]="true"
                   severity="success"
                   size="small"
-                  [loading]="approvingIds().has(schedule.scheduleId)"
+                  [loading]="approvingIds().has(schedule.id)"
                   (onClick)="approveSchedule(schedule)"
                 />
                 <p-button

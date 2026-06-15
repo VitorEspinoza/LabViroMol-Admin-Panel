@@ -14,17 +14,15 @@ import { Schedule } from '../../../shared/models/scheduling.model';
 import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const makeSchedule = (overrides: Partial<Schedule> = {}): Schedule => ({
-  scheduleId: 'sch1',
-  scheduler: { name: 'João da Silva', email: 'joao@example.com', phone: '11999998888' },
-  scheduling: { date: '2026-07-01', time: '14:00' },
-  acceptTerm: true,
+  id: 'sch1',
+  scheduler: { name: 'João da Silva', email: 'joao@example.com', course: 'Biomedicina' },
+  scheduling: { date: '2026-07-01', startDateHour: '2026-07-01T14:00:00Z', endDateHour: '2026-07-01T16:00:00Z' },
   advisorProfessor: 'Profa. Maria Souza',
   projectTitle: 'Análise de Amostras',
   description: 'Uso do microscópio para análise de amostras',
-  equipments: [{ equipmentId: 'eq1', equipmentName: 'Microscópio Óptico' }],
   status: 'PENDING',
   termUrl: null,
-  createdAt: '2026-06-10T10:00:00Z',
+  equipments: [{ equipmentId: 'eq1', name: 'Microscópio Óptico' }],
   ...overrides,
 });
 

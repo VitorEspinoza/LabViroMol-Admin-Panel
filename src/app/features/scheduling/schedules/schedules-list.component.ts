@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -54,22 +54,16 @@ export class SchedulesListComponent {
   protected readonly statusLabels = SCHEDULE_STATUS_LABELS;
   protected readonly statusSeverities = SCHEDULE_STATUS_SEVERITIES;
 
-  protected readonly filteredSchedules = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    if (!query) return this.schedules();
-    return this.schedules().filter(schedule =>
-      schedule.scheduler.name.toLowerCase().includes(query) ||
-      schedule.projectTitle.toLowerCase().includes(query) ||
-      this.statusLabel(schedule.status).toLowerCase().includes(query),
-    );
-  });
-
   private readonly searchSubject = new Subject<string>();
 
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadSchedules();
+      });
   }
 
   protected onSearchInput(event: Event): void {
@@ -83,22 +77,28 @@ export class SchedulesListComponent {
     this.first.set(first);
     this.rows.set(size);
 
+    const sortField = event?.sortField;
+    const sortBy = typeof sortField === 'string' ? sortField : undefined;
+    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+
     this.loading.set(true);
-    this.schedulesService.getSchedules({ pageNumber: page, pageSize: size }).subscribe({
-      next: res => {
-        this.schedules.set(res.data);
-        this.totalRecords.set(res.totalCount);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Não foi possível carregar os agendamentos.',
-        });
-      },
-    });
+    this.schedulesService
+      .getSchedules({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection })
+      .subscribe({
+        next: res => {
+          this.schedules.set(res.data);
+          this.totalRecords.set(res.totalCount);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível carregar os agendamentos.',
+          });
+        },
+      });
   }
 
   protected statusLabel(status: Schedule['status']): string {
@@ -125,17 +125,17 @@ export class SchedulesListComponent {
   }
 
   protected approveSchedule(schedule: Schedule): void {
-    this.approvingIds.update(ids => new Set(ids).add(schedule.scheduleId));
-    this.schedulesService.approveSchedule(schedule.scheduleId).subscribe({
+    this.approvingIds.update(ids => new Set(ids).add(schedule.id));
+    this.schedulesService.approveSchedule(schedule.id).subscribe({
       next: () => {
-        this.approvingIds.update(ids => this.withoutId(ids, schedule.scheduleId));
+        this.approvingIds.update(ids => this.withoutId(ids, schedule.id));
         this.schedules.update(list =>
-          list.map(s => (s.scheduleId === schedule.scheduleId ? { ...s, status: 'SCHEDULED' } : s)),
+          list.map(s => (s.id === schedule.id ? { ...s, status: 'SCHEDULED' } : s)),
         );
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Agendamento aprovado.' });
       },
       error: err => {
-        this.approvingIds.update(ids => this.withoutId(ids, schedule.scheduleId));
+        this.approvingIds.update(ids => this.withoutId(ids, schedule.id));
         this.messageService.add({
           severity: 'error',
           summary: 'Erro',
@@ -149,7 +149,7 @@ export class SchedulesListComponent {
     const schedule = this.selectedSchedule();
     if (schedule) {
       this.schedules.update(list =>
-        list.map(s => (s.scheduleId === schedule.scheduleId ? { ...s, status: 'REFUSED' } : s)),
+        list.map(s => (s.id === schedule.id ? { ...s, status: 'REFUSED' } : s)),
       );
     }
     this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Agendamento rejeitado.' });

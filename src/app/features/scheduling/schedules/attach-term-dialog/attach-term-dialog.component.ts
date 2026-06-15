@@ -75,7 +75,7 @@ export class AttachTermDialogComponent {
     if (!schedule || !file) return;
 
     this.saving.set(true);
-    this.schedulesService.attachTerm(schedule.scheduleId, file).subscribe({
+    this.schedulesService.attachTerm(schedule.id, file).subscribe({
       next: () => {
         this.saving.set(false);
         this.visible.set(false);

@@ -43,7 +43,7 @@ export class RefuseDialogComponent {
 
     const value = this.form.getRawValue();
     this.saving.set(true);
-    this.schedulesService.refuseSchedule(schedule.scheduleId, { justification: value.justification }).subscribe({
+    this.schedulesService.refuseSchedule(schedule.id, { justification: value.justification }).subscribe({
       next: () => {
         this.saving.set(false);
         this.visible.set(false);

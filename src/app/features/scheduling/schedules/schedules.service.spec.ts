@@ -6,24 +6,23 @@ import { SchedulesService } from './schedules.service';
 import { RefuseScheduleRequest, Schedule } from '../../../shared/models/scheduling.model';
 
 const schedule: Schedule = {
-  scheduleId: 'sch1',
+  id: 'sch1',
   scheduler: {
     name: 'João da Silva',
     email: 'joao@example.com',
-    phone: '11999998888',
+    course: 'Biomedicina',
   },
   scheduling: {
     date: '2026-07-01',
-    time: '14:00',
+    startDateHour: '2026-07-01T14:00:00Z',
+    endDateHour: '2026-07-01T16:00:00Z',
   },
-  acceptTerm: true,
   advisorProfessor: 'Profa. Maria Souza',
   projectTitle: 'Análise de Amostras',
   description: 'Uso do microscópio para análise de amostras',
-  equipments: [{ equipmentId: 'eq1', equipmentName: 'Microscópio Óptico' }],
   status: 'PENDING',
   termUrl: null,
-  createdAt: '2026-06-10T10:00:00Z',
+  equipments: [{ equipmentId: 'eq1', name: 'Microscópio Óptico' }],
 };
 
 describe('SchedulesService', () => {

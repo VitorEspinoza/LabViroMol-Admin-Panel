@@ -12,7 +12,7 @@
         <div>
           <span class="text-sm font-medium block">Solicitante</span>
           <span class="text-sm text-muted-foreground">{{ schedule.scheduler.name }}</span>
-          <p class="text-xs text-muted-foreground">{{ schedule.scheduler.email }} · {{ schedule.scheduler.phone }}</p>
+          <p class="text-xs text-muted-foreground">{{ schedule.scheduler.email }} · {{ schedule.scheduler.course }}</p>
         </div>
         <div>
           <span class="text-sm font-medium block">Orientador / Professor</span>
@@ -24,7 +24,10 @@
         </div>
         <div>
           <span class="text-sm font-medium block">Horário</span>
-          <span class="text-sm text-muted-foreground">{{ schedule.scheduling.time }}</span>
+          <span class="text-sm text-muted-foreground">
+            {{ schedule.scheduling.startDateHour | date: 'HH:mm' }} -
+            {{ schedule.scheduling.endDateHour | date: 'HH:mm' }}
+          </span>
         </div>
         <div>
           <span class="text-sm font-medium block">Título do Projeto</span>
@@ -42,10 +45,10 @@
       </div>
 
       <div>
-        <span class="text-sm font-medium block mb-2">Equipamentos Solicitados</span>
+        <span class="text-sm font-medium block mb-2">Equipamentos Agendados</span>
         <div class="flex flex-wrap gap-2">
           @for (equipment of schedule.equipments; track equipment.equipmentId) {
-            <p-tag [value]="equipment.equipmentName" severity="secondary" />
+            <p-tag [value]="equipment.name" severity="secondary" />
           } @empty {
             <span class="text-sm text-muted-foreground">Nenhum equipamento informado.</span>
           }

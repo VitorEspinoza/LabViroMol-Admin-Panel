@@ -113,6 +113,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Agendamentos' },
       },
+      {
+        path: 'scheduling/calendario',
+        canActivate: [permissionGuard('Scheduling.Schedules.View')],
+        loadComponent: () =>
+          import('./features/scheduling/calendar/calendar-view.component').then(
+            m => m.CalendarViewComponent,
+          ),
+        data: { title: 'Calendário / Reservas' },
+      },
     ],
   },
   {
