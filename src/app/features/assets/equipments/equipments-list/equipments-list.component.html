@@ -1,0 +1,121 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-4">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <p-iconfield class="w-full md:max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por código, nome, modelo, marca ou localização..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+
+    @if (auth.hasPermission('Assets.Equipments.Manage')) {
+      <p-button label="Novo Equipamento" icon="pi pi-plus" (onClick)="openCreate()" />
+    }
+  </div>
+
+  <p-table
+    [value]="equipments()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="rows()"
+    [first]="first()"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadEquipments($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th></th>
+        <th>Código</th>
+        <th pSortableColumn="name">Nome <p-sortIcon field="name" /></th>
+        <th pSortableColumn="model">Modelo <p-sortIcon field="model" /></th>
+        <th pSortableColumn="brand">Marca <p-sortIcon field="brand" /></th>
+        <th class="hidden md:table-cell">Localização</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-equipment>
+      <tr>
+        <td>
+          @if (imageUrlFor(equipment)) {
+            <img [src]="imageUrlFor(equipment)" alt="" class="w-10 h-10 rounded object-cover" />
+          } @else {
+            <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-muted-foreground">
+              <i class="pi pi-image" aria-hidden="true"></i>
+            </div>
+          }
+        </td>
+        <td>
+          <span class="font-mono text-sm">{{ equipment.code }}</span>
+        </td>
+        <td>
+          <span class="font-semibold">{{ equipment.name }}</span>
+        </td>
+        <td>{{ equipment.model }}</td>
+        <td>{{ equipment.brand }}</td>
+        <td class="hidden md:table-cell">{{ equipment.location || '—' }}</td>
+        <td>
+          @if (auth.hasPermission('Assets.Equipments.Manage')) {
+            <div class="flex items-center gap-1">
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                size="small"
+                (onClick)="openEdit(equipment)"
+              />
+              <p-button
+                icon="pi pi-camera"
+                label="Adicionar Foto"
+                [text]="true"
+                severity="secondary"
+                size="small"
+                [loading]="uploadingEquipmentId() === equipment.equipmentId"
+                (onClick)="triggerImageUpload(equipment)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                size="small"
+                (onClick)="confirmDelete(equipment)"
+              />
+            </div>
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center py-8 text-muted-foreground">
+          Nenhum equipamento encontrado.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<input
+  #fileInput
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  class="hidden"
+  (change)="onImageSelected($event)"
+/>
+
+<app-equipment-form
+  [(visible)]="dialogVisible"
+  [equipment]="selectedEquipment()"
+  (saved)="onFormSaved()"
+/>

@@ -1,0 +1,108 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [header]="dialogHeader()"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '95vw', maxWidth: '620px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+
+      <div class="flex flex-col gap-2 md:col-span-2">
+        <label class="text-sm font-medium">Foto</label>
+        <div class="flex items-center gap-3">
+          @if (imagePreviewUrl()) {
+            <img [src]="imagePreviewUrl()" alt="" class="w-16 h-16 rounded object-cover border border-border" />
+          } @else {
+            <div class="w-16 h-16 rounded bg-gray-100 flex items-center justify-center text-muted-foreground border border-border">
+              <i class="pi pi-image" aria-hidden="true"></i>
+            </div>
+          }
+          <p-button
+            label="Selecionar Imagem"
+            icon="pi pi-camera"
+            [outlined]="true"
+            severity="secondary"
+            size="small"
+            type="button"
+            [disabled]="saving()"
+            (onClick)="triggerImageSelect()"
+          />
+        </div>
+        <span class="text-xs text-muted-foreground">A imagem será enviada ao clicar em "Salvar".</span>
+        <input
+          #fileInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          class="hidden"
+          (change)="onImageSelected($event)"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <label for="name" class="text-sm font-medium">Nome <span class="text-red-500">*</span></label>
+        <input pInputText id="name" formControlName="name" class="w-full" />
+        @if (form.get('name')?.errors?.['required'] && form.get('name')?.touched) {
+          <span class="text-xs text-red-500">Nome é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="model" class="text-sm font-medium">Modelo <span class="text-red-500">*</span></label>
+        <input pInputText id="model" formControlName="model" class="w-full" />
+        @if (form.get('model')?.errors?.['required'] && form.get('model')?.touched) {
+          <span class="text-xs text-red-500">Modelo é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="brand" class="text-sm font-medium">Marca <span class="text-red-500">*</span></label>
+        <input pInputText id="brand" formControlName="brand" class="w-full" />
+        @if (form.get('brand')?.errors?.['required'] && form.get('brand')?.touched) {
+          <span class="text-xs text-red-500">Marca é obrigatória.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="code" class="text-sm font-medium">Código / Patrimônio <span class="text-red-500">*</span></label>
+        <input pInputText id="code" formControlName="code" class="w-full font-mono" />
+        @if (form.get('code')?.errors?.['required'] && form.get('code')?.touched) {
+          <span class="text-xs text-red-500">Código é obrigatório.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="location" class="text-sm font-medium">Localização</label>
+        <input pInputText id="location" formControlName="location" class="w-full" />
+      </div>
+
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <label for="description" class="text-sm font-medium">Descrição <span class="text-red-500">*</span></label>
+        <textarea pTextarea id="description" formControlName="description" rows="3" class="w-full"></textarea>
+        @if (form.get('description')?.errors?.['required'] && form.get('description')?.touched) {
+          <span class="text-xs text-red-500">Descrição é obrigatória.</span>
+        }
+      </div>
+
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Salvar"
+        [loading]="saving()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

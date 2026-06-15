@@ -1,0 +1,107 @@
+<p-toast position="bottom-right" />
+
+<div class="space-y-4">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <p-iconfield class="w-full md:max-w-sm">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por equipamento, descrição ou status..."
+        class="w-full"
+        (input)="onSearchInput($event)"
+      />
+    </p-iconfield>
+
+    @if (auth.hasPermission('Assets.Maintenance.Manage')) {
+      <p-button label="Nova Solicitação" icon="pi pi-plus" (onClick)="openCreate()" />
+    }
+  </div>
+
+  <p-table
+    [value]="requests()"
+    [lazy]="true"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="rows()"
+    [first]="first()"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadRequests($event)"
+    [scrollable]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="equipmentName">Equipamento <p-sortIcon field="equipmentName" /></th>
+        <th pSortableColumn="description">Descrição <p-sortIcon field="description" /></th>
+        <th class="hidden md:table-cell">Problema</th>
+        <th pSortableColumn="createdAt">Criação <p-sortIcon field="createdAt" /></th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-request>
+      <tr>
+        <td>
+          <span class="font-semibold">{{ request.equipmentName }}</span>
+        </td>
+        <td>{{ request.description }}</td>
+        <td class="hidden md:table-cell text-muted-foreground">{{ request.problemDescription }}</td>
+        <td>{{ request.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <p-tag [value]="statusLabel(request.status)" [severity]="statusSeverity(request.status)" />
+        </td>
+        <td>
+          @if (auth.hasPermission('Assets.Maintenance.Manage')) {
+            <div class="flex items-center gap-1">
+              @if (request.status === 'Requested') {
+                <p-button
+                  label="Iniciar"
+                  icon="pi pi-play"
+                  [text]="true"
+                  severity="info"
+                  size="small"
+                  (onClick)="startMaintenance(request)"
+                />
+              }
+              @if (request.status === 'InProgress') {
+                <p-button
+                  label="Concluir"
+                  icon="pi pi-check"
+                  [text]="true"
+                  severity="success"
+                  size="small"
+                  (onClick)="confirmComplete(request)"
+                />
+              }
+              @if (request.status !== 'Done' && request.status !== 'Cancelled') {
+                <p-button
+                  label="Cancelar"
+                  icon="pi pi-times"
+                  [text]="true"
+                  severity="danger"
+                  size="small"
+                  (onClick)="confirmCancel(request)"
+                />
+              }
+            </div>
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8 text-muted-foreground">
+          Nenhuma solicitação de manutenção encontrada.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-maintenance-form
+  [(visible)]="dialogVisible"
+  (saved)="onFormSaved()"
+/>

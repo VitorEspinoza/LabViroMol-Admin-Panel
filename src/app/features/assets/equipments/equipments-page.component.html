@@ -1,0 +1,27 @@
+<div class="space-y-6">
+  <app-page-header
+    title="Equipamentos"
+    subtitle="Gerencie o inventário de equipamentos e as solicitações de manutenção."
+  />
+
+  <p-tabs value="equipments" [lazy]="true">
+    <p-tablist>
+      <p-tab value="equipments">Equipamentos</p-tab>
+      @if (auth.hasPermission('Assets.Maintenance.View')) {
+        <p-tab value="maintenance">Manutenções</p-tab>
+      }
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel value="equipments">
+        <app-equipments-list />
+      </p-tabpanel>
+
+      @if (auth.hasPermission('Assets.Maintenance.View')) {
+        <p-tabpanel value="maintenance">
+          <app-maintenance-list />
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
+</div>
