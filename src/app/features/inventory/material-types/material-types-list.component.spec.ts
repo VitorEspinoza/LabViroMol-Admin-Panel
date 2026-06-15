@@ -74,7 +74,7 @@ describe('MaterialTypesListComponent', () => {
     await setup();
 
     expect(component).toBeTruthy();
-    expect(materialTypesServiceMock.getTypes).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 100 });
+    expect(materialTypesServiceMock.getTypes).toHaveBeenCalledWith({ pageNumber: 1, pageSize: 10, search: undefined, sortBy: undefined, sortDirection: undefined });
     expect((component as any).types().length).toBe(1);
     expect((component as any).loading()).toBe(false);
   });
@@ -104,7 +104,7 @@ describe('MaterialTypesListComponent', () => {
     });
   });
 
-  describe('busca local', () => {
+  describe('busca server-side', () => {
     beforeEach(() => {
       vi.useFakeTimers();
     });
@@ -113,31 +113,46 @@ describe('MaterialTypesListComponent', () => {
       vi.useRealTimers();
     });
 
-    it('filtra os tipos localmente por nome após o debounce', async () => {
-      materialTypesServiceMock.getTypes = vi.fn().mockReturnValue(
-        of(pagedResponse([makeType({ id: 'mt1', name: 'Reagentes' }), makeType({ id: 'mt2', name: 'Vidrarias' })])),
-      );
+    it('envia o termo de busca para getTypes após o debounce', async () => {
       await setup();
+      materialTypesServiceMock.getTypes.mockClear();
 
       (component as any).onSearchInput({ target: { value: 'vidr' } } as unknown as Event);
       vi.advanceTimersByTime(300);
 
-      const filtered = (component as any).filteredTypes() as MaterialType[];
-      expect(filtered.length).toBe(1);
-      expect(filtered[0].name).toBe('Vidrarias');
-      expect(materialTypesServiceMock.getTypes).toHaveBeenCalledTimes(1);
+      expect(materialTypesServiceMock.getTypes).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: 'vidr',
+        sortBy: undefined,
+        sortDirection: undefined,
+      });
     });
 
-    it('retorna todos os tipos quando a busca está vazia', async () => {
-      materialTypesServiceMock.getTypes = vi.fn().mockReturnValue(
-        of(pagedResponse([makeType({ id: 'mt1', name: 'Reagentes' }), makeType({ id: 'mt2', name: 'Vidrarias' })])),
-      );
+    it('reseta para a primeira página ao buscar', async () => {
       await setup();
+      (component as any).first.set(20);
+
+      (component as any).onSearchInput({ target: { value: 'reagentes' } } as unknown as Event);
+      vi.advanceTimersByTime(300);
+
+      expect((component as any).first()).toBe(0);
+    });
+
+    it('não envia o parâmetro search quando a busca está vazia', async () => {
+      await setup();
+      materialTypesServiceMock.getTypes.mockClear();
 
       (component as any).onSearchInput({ target: { value: '' } } as unknown as Event);
       vi.advanceTimersByTime(300);
 
-      expect((component as any).filteredTypes().length).toBe(2);
+      expect(materialTypesServiceMock.getTypes).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 10,
+        search: undefined,
+        sortBy: undefined,
+        sortDirection: undefined,
+      });
     });
   });
 

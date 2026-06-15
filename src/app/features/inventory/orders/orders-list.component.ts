@@ -1,10 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
@@ -25,6 +25,7 @@ import { OrderCreateFormComponent } from './order-create-form/order-create-form.
 import { OrderProcessDialogComponent } from './order-process-dialog/order-process-dialog.component';
 import { OrderReceiveDialogComponent } from './order-receive-dialog/order-receive-dialog.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-orders-list',
@@ -63,6 +64,9 @@ export class OrdersListComponent {
   protected readonly statusSeverities = ORDER_STATUS_SEVERITIES;
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -87,9 +91,11 @@ export class OrdersListComponent {
     this.first.set(first);
     this.rows.set(size);
 
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
+
     this.loading.set(true);
     this.ordersService
-      .getOrders({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined })
+      .getOrders({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection })
       .subscribe({
         next: res => {
           this.orders.set(res.data);

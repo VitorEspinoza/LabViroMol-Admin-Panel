@@ -1,9 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Toast } from 'primeng/toast';
@@ -18,6 +18,7 @@ import { MaterialType } from '../../../shared/models/inventory.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-material-types-list',
@@ -40,47 +41,61 @@ export class MaterialTypesListComponent {
   protected readonly saving = signal(false);
   protected readonly dialogVisible = signal(false);
   protected readonly searchQuery = signal('');
+  protected readonly totalRecords = signal(0);
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     active: [true],
   });
 
-  protected readonly filteredTypes = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    if (!query) return this.types();
-    return this.types().filter(type => type.name.toLowerCase().includes(query));
-  });
-
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe(q => this.searchQuery.set(q));
-    this.loadTypes();
+      .subscribe(q => {
+        this.searchQuery.set(q);
+        this.first.set(0);
+        this.loadTypes();
+      });
   }
 
   protected onSearchInput(event: Event): void {
     this.searchSubject.next((event.target as HTMLInputElement).value);
   }
 
-  protected loadTypes(): void {
+  protected loadTypes(event?: TableLazyLoadEvent): void {
+    const first = event?.first ?? this.first();
+    const size = event?.rows ?? this.rows();
+    const page = Math.floor(first / size) + 1;
+    this.first.set(first);
+    this.rows.set(size);
+
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
+
     this.loading.set(true);
-    this.materialTypesService.getTypes({ pageNumber: 1, pageSize: 100 }).subscribe({
-      next: res => {
-        this.types.set(res.data);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Não foi possível carregar os tipos de materiais.',
-        });
-      },
-    });
+    this.materialTypesService
+      .getTypes({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection })
+      .subscribe({
+        next: res => {
+          this.types.set(res.data);
+          this.totalRecords.set(res.totalCount);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível carregar os tipos de materiais.',
+          });
+        },
+      });
   }
 
   protected openCreate(): void {

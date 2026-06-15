@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent } from 'primeng/table';
+import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -22,6 +22,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { UserFormComponent } from './user-form/user-form.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-people-list',
@@ -52,7 +53,10 @@ export class PeopleListComponent {
   protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
   private rolesLoaded = false;
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -74,8 +78,11 @@ export class PeopleListComponent {
     const page = Math.floor(first / size) + 1;
     this.first.set(first);
     this.rows.set(size);
+
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
+
     this.loading.set(true);
-    this.usersService.getUsers({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
+    this.usersService.getUsers({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection }).subscribe({
       next: res => {
         this.users.set(res.data);
         this.totalRecords.set(res.totalCount);

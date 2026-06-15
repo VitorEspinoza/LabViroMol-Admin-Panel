@@ -24,6 +24,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="users()"
     [lazy]="true"
     [loading]="loading()"
@@ -37,12 +38,12 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Nome</th>
-        <th>E-mail</th>
+        <th pSortableColumn="fullName">Nome <p-sortIcon field="fullName" /></th>
+        <th pSortableColumn="email">E-mail <p-sortIcon field="email" /></th>
         <th class="hidden md:table-cell">Tel. Emergência</th>
         <th class="hidden md:table-cell">Contato Emergência</th>
         <th>Perfil</th>
-        <th>Ativo</th>
+        <th pSortableColumn="isActive">Ativo <p-sortIcon field="isActive" /></th>
         <th>Ações</th>
       </tr>
     </ng-template>

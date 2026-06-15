@@ -24,17 +24,22 @@
 
   <app-data-table-container>
   <p-table
-    [value]="filteredTypes()"
+    #dt
+    [value]="types()"
+    [lazy]="true"
     [loading]="loading()"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows()"
+    [first]="first()"
+    [totalRecords]="totalRecords()"
+    (onLazyLoad)="loadTypes($event)"
     [scrollable]="true"
     styleClass="p-datatable-sm"
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Nome</th>
-        <th>Status</th>
+        <th pSortableColumn="name">Nome <p-sortIcon field="name" /></th>
+        <th pSortableColumn="active">Status <p-sortIcon field="active" /></th>
       </tr>
     </ng-template>
 

@@ -20,6 +20,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="projects()"
     [lazy]="true"
     [loading]="loading()"
@@ -33,11 +34,11 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Título</th>
-        <th>Parceiro</th>
-        <th>Líder/PI</th>
-        <th>Status</th>
-        <th>Criação</th>
+        <th pSortableColumn="title">Título <p-sortIcon field="title" /></th>
+        <th pSortableColumn="partnerName">Parceiro <p-sortIcon field="partnerName" /></th>
+        <th pSortableColumn="managerName">Líder/PI <p-sortIcon field="managerName" /></th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
+        <th pSortableColumn="createdAt">Criação <p-sortIcon field="createdAt" /></th>
         <th>Ações</th>
       </tr>
     </ng-template>

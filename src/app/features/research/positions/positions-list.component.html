@@ -24,6 +24,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="positions()"
     [lazy]="true"
     [loading]="loading()"
@@ -37,7 +38,7 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Nome</th>
+        <th pSortableColumn="name">Nome <p-sortIcon field="name" /></th>
         <th>Descrição</th>
         <th>Ações</th>
       </tr>

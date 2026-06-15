@@ -56,6 +56,8 @@ export class OrdersService {
     if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
     if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
     if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.sortBy) httpParams = httpParams.set('sortBy', params.sortBy);
+    if (params.sortDirection) httpParams = httpParams.set('sortDirection', params.sortDirection);
     return this.http
       .get<PagedResponse<OrderSummaryApiResponse>>(this.base, { params: httpParams })
       .pipe(map(res => ({ ...res, data: res.data.map(toOrder) })));

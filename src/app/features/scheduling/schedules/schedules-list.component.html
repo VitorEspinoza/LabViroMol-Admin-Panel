@@ -21,6 +21,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="schedules()"
     [lazy]="true"
     [loading]="loading()"
@@ -35,7 +36,7 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Usuário</th>
+        <th pSortableColumn="user">Usuário <p-sortIcon field="user" /></th>
         <th>Descrição</th>
         <th pSortableColumn="date">Data <p-sortIcon field="date" /></th>
         <th>Horário</th>

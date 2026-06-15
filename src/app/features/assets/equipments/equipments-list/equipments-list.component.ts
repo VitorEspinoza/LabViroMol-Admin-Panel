@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -18,6 +18,7 @@ import { environment } from '../../../../../environments/environment';
 import { EquipmentFormComponent } from '../equipment-form/equipment-form.component';
 import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../../shared/utils/table-sort-cycle';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -54,9 +55,11 @@ export class EquipmentsListComponent {
   protected readonly uploadingEquipmentId = signal<string | null>(null);
 
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  private readonly table = viewChild<Table>('dt');
   private uploadTargetId: string | null = null;
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
 
   constructor() {
     this.searchSubject
@@ -79,9 +82,7 @@ export class EquipmentsListComponent {
     this.first.set(first);
     this.rows.set(size);
 
-    const sortField = event?.sortField;
-    const sortBy = typeof sortField === 'string' ? sortField : undefined;
-    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table());
 
     this.loading.set(true);
     this.equipmentsService

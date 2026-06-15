@@ -20,6 +20,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="publications()"
     [lazy]="true"
     [loading]="loading()"
@@ -33,9 +34,9 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Título</th>
+        <th pSortableColumn="title">Título <p-sortIcon field="title" /></th>
         <th>DOI</th>
-        <th>Data de Publicação</th>
+        <th pSortableColumn="publicationDate">Data de Publicação <p-sortIcon field="publicationDate" /></th>
         <th>Autores</th>
         <th>Ações</th>
       </tr>

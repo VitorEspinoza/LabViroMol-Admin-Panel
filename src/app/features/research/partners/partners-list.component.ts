@@ -1,9 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
 import { InputText } from 'primeng/inputtext';
@@ -19,6 +19,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-partners-list',
@@ -48,6 +49,9 @@ export class PartnersListComponent {
   protected readonly rows = signal(10);
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -78,8 +82,11 @@ export class PartnersListComponent {
     const page = Math.floor(first / size) + 1;
     this.first.set(first);
     this.rows.set(size);
+
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
+
     this.loading.set(true);
-    this.partnersService.getPartners({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
+    this.partnersService.getPartners({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection }).subscribe({
       next: res => {
         this.partners.set(res.data);
         this.totalRecords.set(res.totalCount);

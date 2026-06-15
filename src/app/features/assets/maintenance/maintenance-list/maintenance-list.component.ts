@@ -1,10 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
@@ -20,6 +20,7 @@ import { ConfirmDialogService } from '../../../../shared/components/confirm-dial
 import { MAINTENANCE_STATUS_LABELS, MAINTENANCE_STATUS_SEVERITIES } from '../../../../shared/utils/maintenance-status';
 import { MaintenanceFormComponent } from '../maintenance-form/maintenance-form.component';
 import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-maintenance-list',
@@ -49,6 +50,9 @@ export class MaintenanceListComponent {
   protected readonly statusSeverities = MAINTENANCE_STATUS_SEVERITIES;
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -71,9 +75,7 @@ export class MaintenanceListComponent {
     this.first.set(first);
     this.rows.set(size);
 
-    const sortField = event?.sortField;
-    const sortBy = typeof sortField === 'string' ? sortField : undefined;
-    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
 
     this.loading.set(true);
     this.maintenanceService

@@ -27,6 +27,7 @@
 
   <app-data-table-container>
   <p-table
+    #dt
     [value]="orders()"
     [lazy]="true"
     [loading]="loading()"
@@ -40,11 +41,11 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Material</th>
-        <th>Projeto</th>
+        <th pSortableColumn="materialName">Material <p-sortIcon field="materialName" /></th>
+        <th pSortableColumn="projectTitle">Projeto <p-sortIcon field="projectTitle" /></th>
         <th>Quantidade</th>
         <th pSortableColumn="createdAt">Criação <p-sortIcon field="createdAt" /></th>
-        <th>Status</th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
         <th>Ação</th>
       </tr>
     </ng-template>

@@ -1,10 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
 import { InputText } from 'primeng/inputtext';
@@ -19,6 +19,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { MaterialFormComponent } from './material-form/material-form.component';
 import { MaterialUnitLabelPipe } from './material-unit-label.pipe';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-materials-list',
@@ -48,8 +49,9 @@ export class MaterialsListComponent {
   protected readonly highlightedMaterialId = signal<string | null>(null);
 
   private readonly searchSubject = new Subject<string>();
-  private sortField: string | null = null;
-  private sortOrder: number | null = null;
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -89,10 +91,7 @@ export class MaterialsListComponent {
     this.first.set(first);
     this.rows.set(size);
 
-    if (event) {
-      this.sortField = typeof event.sortField === 'string' ? event.sortField : null;
-      this.sortOrder = event.sortOrder ?? null;
-    }
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
 
     this.loading.set(true);
     this.materialsService
@@ -100,8 +99,8 @@ export class MaterialsListComponent {
         pageNumber: page,
         pageSize: size,
         search: this.searchQuery() || undefined,
-        sortBy: this.sortField ?? undefined,
-        sortDirection: this.sortField ? (this.sortOrder === -1 ? 'desc' : 'asc') : undefined,
+        sortBy,
+        sortDirection,
       })
       .subscribe({
         next: res => {

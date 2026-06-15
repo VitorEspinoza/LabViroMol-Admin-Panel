@@ -1,11 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
@@ -23,6 +23,7 @@ import { ScheduleDetailDialogComponent } from './schedule-detail-dialog/schedule
 import { RefuseDialogComponent } from './refuse-dialog/refuse-dialog.component';
 import { AttachTermDialogComponent } from './attach-term-dialog/attach-term-dialog.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-schedules-list',
@@ -60,6 +61,9 @@ export class SchedulesListComponent {
   protected readonly statusSeverities = SCHEDULE_STATUS_SEVERITIES;
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -93,9 +97,7 @@ export class SchedulesListComponent {
     this.first.set(first);
     this.rows.set(size);
 
-    const sortField = event?.sortField;
-    const sortBy = typeof sortField === 'string' ? sortField : undefined;
-    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
 
     this.loading.set(true);
     this.schedulesService

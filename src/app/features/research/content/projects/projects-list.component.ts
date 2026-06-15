@@ -1,8 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TableLazyLoadEvent, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
@@ -19,6 +19,7 @@ import { PROJECT_STATUS_LABELS, PROJECT_STATUS_SEVERITIES } from '../../../../sh
 import { ProjectFormComponent } from './project-form/project-form.component';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
 import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../../shared/utils/table-sort-cycle';
 
 @Component({
   selector: 'app-projects-list',
@@ -51,6 +52,9 @@ export class ProjectsListComponent {
   protected readonly statusSeverities = PROJECT_STATUS_SEVERITIES;
 
   private readonly searchSubject = new Subject<string>();
+  private readonly sortCycle = new TableSortCycle();
+
+  @ViewChild('dt') private table?: Table;
 
   constructor() {
     this.searchSubject
@@ -72,8 +76,11 @@ export class ProjectsListComponent {
     const page = Math.floor(first / size) + 1;
     this.first.set(first);
     this.rows.set(size);
+
+    const { sortBy, sortDirection } = this.sortCycle.resolve(event, this.table);
+
     this.loading.set(true);
-    this.projectsService.getProjects({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined }).subscribe({
+    this.projectsService.getProjects({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection }).subscribe({
       next: res => {
         this.projects.set(res.data);
         this.totalRecords.set(res.totalCount);
