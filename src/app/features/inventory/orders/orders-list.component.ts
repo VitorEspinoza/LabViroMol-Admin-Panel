@@ -24,6 +24,7 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_SEVERITIES } from '../../../shared/ut
 import { OrderCreateFormComponent } from './order-create-form/order-create-form.component';
 import { OrderProcessDialogComponent } from './order-process-dialog/order-process-dialog.component';
 import { OrderReceiveDialogComponent } from './order-receive-dialog/order-receive-dialog.component';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-orders-list',
@@ -32,6 +33,7 @@ import { OrderReceiveDialogComponent } from './order-receive-dialog/order-receiv
     TableModule, Button, Tag, Toast, InputText, IconField, InputIcon, DatePipe,
     PageHeaderComponent, MaterialUnitLabelPipe,
     OrderCreateFormComponent, OrderProcessDialogComponent, OrderReceiveDialogComponent,
+    DataTableContainerComponent,
   ],
   templateUrl: './orders-list.component.html',
   providers: [MessageService],

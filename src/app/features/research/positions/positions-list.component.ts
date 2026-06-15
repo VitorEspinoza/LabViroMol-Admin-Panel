@@ -18,13 +18,14 @@ import { Position } from '../../../shared/models/research.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-positions-list',
   imports: [
     ReactiveFormsModule,
     TableModule, Button, Toast, InputText, Textarea, IconField, InputIcon, Dialog,
-    PageHeaderComponent,
+    PageHeaderComponent, DataTableContainerComponent,
   ],
   templateUrl: './positions-list.component.html',
   providers: [MessageService],

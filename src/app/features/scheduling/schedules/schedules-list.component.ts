@@ -22,6 +22,7 @@ import { SCHEDULE_STATUS_LABELS, SCHEDULE_STATUS_SEVERITIES } from '../../../sha
 import { ScheduleDetailDialogComponent } from './schedule-detail-dialog/schedule-detail-dialog.component';
 import { RefuseDialogComponent } from './refuse-dialog/refuse-dialog.component';
 import { AttachTermDialogComponent } from './attach-term-dialog/attach-term-dialog.component';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-schedules-list',
@@ -30,6 +31,7 @@ import { AttachTermDialogComponent } from './attach-term-dialog/attach-term-dial
     TableModule, Button, Tag, InputText, IconField, InputIcon, Toast,
     PageHeaderComponent,
     ScheduleDetailDialogComponent, RefuseDialogComponent, AttachTermDialogComponent,
+    DataTableContainerComponent,
   ],
   templateUrl: './schedules-list.component.html',
   providers: [MessageService],

@@ -77,7 +77,7 @@ describe('DashboardComponent', () => {
     vi.stubGlobal('ResizeObserver', MockResizeObserver);
 
     schedulesServiceMock = {
-      getPendingSchedules: vi.fn().mockReturnValue(of([makeSchedule({ id: 'p1', status: 'PENDING' })])),
+      getPendingSchedules: vi.fn().mockReturnValue(of(paged([makeSchedule({ id: 'p1', status: 'PENDING' })]))),
       getSchedules: vi.fn().mockReturnValue(of(paged([makeSchedule()]))),
     };
     materialsServiceMock = {
@@ -136,7 +136,7 @@ describe('DashboardComponent', () => {
   });
 
   it('exibe skeleton enquanto os dados estão carregando', async () => {
-    const pending = new Subject<Schedule[]>();
+    const pending = new Subject<PagedResponse<Schedule>>();
     const overview = new Subject<PagedResponse<Schedule>>();
     const materials = new Subject<PagedResponse<Material>>();
     const maintenance = new Subject<PagedResponse<MaintenanceRequest>>();
@@ -169,7 +169,7 @@ describe('DashboardComponent', () => {
     const skeletons = fixture.nativeElement.querySelectorAll('p-skeleton');
     expect(skeletons.length).toBeGreaterThan(0);
 
-    pending.next([]);
+    pending.next(paged([]));
     overview.next(paged([]));
     materials.next(paged([]));
     maintenance.next(paged([]));

@@ -70,9 +70,9 @@ export class DashboardComponent implements OnInit {
 
   private loadPendingSchedules(): void {
     this.pendingSchedulesLoading.set(true);
-    this.schedulesService.getPendingSchedules().subscribe({
-      next: schedules => {
-        this.pendingSchedulesCount.set(schedules.length);
+    this.schedulesService.getPendingSchedules({ pageSize: 1 }).subscribe({
+      next: res => {
+        this.pendingSchedulesCount.set(res.totalCount);
         this.pendingSchedulesLoading.set(false);
       },
       error: () => this.pendingSchedulesLoading.set(false),

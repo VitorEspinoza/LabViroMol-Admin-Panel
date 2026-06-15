@@ -17,12 +17,23 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { environment } from '../../../../../environments/environment';
 import { EquipmentFormComponent } from '../equipment-form/equipment-form.component';
 import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 @Component({
   selector: 'app-equipments-list',
-  imports: [FormsModule, TableModule, Button, InputText, IconField, InputIcon, Toast, EquipmentFormComponent],
+  imports: [
+    FormsModule,
+    TableModule,
+    Button,
+    InputText,
+    IconField,
+    InputIcon,
+    Toast,
+    EquipmentFormComponent,
+    DataTableContainerComponent,
+  ],
   templateUrl: './equipments-list.component.html',
   providers: [MessageService],
 })

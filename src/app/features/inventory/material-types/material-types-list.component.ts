@@ -17,13 +17,14 @@ import { MaterialTypesService } from './material-types.service';
 import { MaterialType } from '../../../shared/models/inventory.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-material-types-list',
   imports: [
     FormsModule, ReactiveFormsModule,
     TableModule, Button, ToggleSwitch, Toast, InputText, IconField, InputIcon, Dialog,
-    PageHeaderComponent,
+    PageHeaderComponent, DataTableContainerComponent,
   ],
   templateUrl: './material-types-list.component.html',
   providers: [MessageService],

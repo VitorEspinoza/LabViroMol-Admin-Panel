@@ -19,13 +19,14 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { MAINTENANCE_STATUS_LABELS, MAINTENANCE_STATUS_SEVERITIES } from '../../../../shared/utils/maintenance-status';
 import { MaintenanceFormComponent } from '../maintenance-form/maintenance-form.component';
+import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-maintenance-list',
   imports: [
     FormsModule, DatePipe,
     TableModule, Button, Tag, InputText, IconField, InputIcon, Toast,
-    MaintenanceFormComponent,
+    MaintenanceFormComponent, DataTableContainerComponent,
   ],
   templateUrl: './maintenance-list.component.html',
   providers: [MessageService],

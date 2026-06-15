@@ -18,12 +18,13 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_SEVERITIES } from '../../../../shared/utils/project-status';
 import { ProjectFormComponent } from './project-form/project-form.component';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
+import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-projects-list',
   imports: [
     TableModule, Button, Tag, Toast, InputText, IconField, InputIcon, DatePipe,
-    ProjectFormComponent, ProjectDetailComponent,
+    ProjectFormComponent, ProjectDetailComponent, DataTableContainerComponent,
   ],
   templateUrl: './projects-list.component.html',
   providers: [MessageService],

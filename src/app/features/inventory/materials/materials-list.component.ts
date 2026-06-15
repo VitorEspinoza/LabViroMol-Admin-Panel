@@ -18,13 +18,14 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MaterialFormComponent } from './material-form/material-form.component';
 import { MaterialUnitLabelPipe } from './material-unit-label.pipe';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-materials-list',
   imports: [
     FormsModule,
     TableModule, Button, Toast, InputText, IconField, InputIcon,
-    PageHeaderComponent, MaterialFormComponent, MaterialUnitLabelPipe,
+    PageHeaderComponent, MaterialFormComponent, MaterialUnitLabelPipe, DataTableContainerComponent,
   ],
   templateUrl: './materials-list.component.html',
   providers: [MessageService],

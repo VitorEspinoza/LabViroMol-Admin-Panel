@@ -58,14 +58,23 @@ describe('SchedulesService', () => {
     req.flush(response);
   });
 
-  it('getPendingSchedules — retorna lista de agendamentos pendentes', () => {
-    service.getPendingSchedules().subscribe(res => {
-      expect(res).toEqual([schedule]);
+  it('getPendingSchedules — retorna PagedResponse de agendamentos pendentes', () => {
+    const response = {
+      data: [schedule],
+      currentPage: 1,
+      pageSize: 1,
+      totalPages: 1,
+      totalCount: 1,
+    };
+
+    service.getPendingSchedules({ pageSize: 1 }).subscribe(res => {
+      expect(res).toEqual(response);
     });
 
-    const req = http.expectOne('http://localhost:5085/api/scheduling/schedules/pending');
+    const req = http.expectOne(r => r.url === 'http://localhost:5085/api/scheduling/schedules/pending');
     expect(req.request.method).toBe('GET');
-    req.flush([schedule]);
+    expect(req.request.params.get('pageSize')).toBe('1');
+    req.flush(response);
   });
 
   it('approveSchedule — envia POST sem corpo para /approve', () => {

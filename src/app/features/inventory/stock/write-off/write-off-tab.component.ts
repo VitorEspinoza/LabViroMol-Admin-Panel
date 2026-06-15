@@ -16,10 +16,14 @@ import { Material } from '../../../../shared/models/inventory.model';
 import { MaterialUnitLabelPipe } from '../../materials/material-unit-label.pipe';
 import { CartService } from './cart/cart.service';
 import { CartComponent } from './cart/cart.component';
+import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-write-off-tab',
-  imports: [FormsModule, TableModule, Button, InputText, InputNumber, IconField, InputIcon, MaterialUnitLabelPipe, CartComponent],
+  imports: [
+    FormsModule, TableModule, Button, InputText, InputNumber, IconField, InputIcon,
+    MaterialUnitLabelPipe, CartComponent, DataTableContainerComponent,
+  ],
   templateUrl: './write-off-tab.component.html',
 })
 export class WriteOffTabComponent {

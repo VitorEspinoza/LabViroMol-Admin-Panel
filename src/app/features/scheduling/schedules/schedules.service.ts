@@ -21,8 +21,11 @@ export class SchedulesService {
     return this.http.get<PagedResponse<Schedule>>(this.base, { params: httpParams });
   }
 
-  getPendingSchedules(): Observable<Schedule[]> {
-    return this.http.get<Schedule[]>(`${this.base}/pending`);
+  getPendingSchedules(params: PagedRequest = {}): Observable<PagedResponse<Schedule>> {
+    let httpParams = new HttpParams();
+    if (params.pageNumber != null) httpParams = httpParams.set('pageNumber', params.pageNumber);
+    if (params.pageSize != null) httpParams = httpParams.set('pageSize', params.pageSize);
+    return this.http.get<PagedResponse<Schedule>>(`${this.base}/pending`, { params: httpParams });
   }
 
   getScheduleById(id: string): Observable<Schedule> {

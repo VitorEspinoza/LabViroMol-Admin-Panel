@@ -25,6 +25,7 @@
     </p-iconfield>
   </div>
 
+  <app-data-table-container>
   <p-table
     [value]="orders()"
     [lazy]="true"
@@ -102,6 +103,7 @@
       </tr>
     </ng-template>
   </p-table>
+  </app-data-table-container>
 </div>
 
 <app-order-create-form

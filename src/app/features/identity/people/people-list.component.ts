@@ -21,6 +21,7 @@ import { Role } from '../../../shared/models/role.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { UserFormComponent } from './user-form/user-form.component';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 
 @Component({
   selector: 'app-people-list',
@@ -29,6 +30,7 @@ import { UserFormComponent } from './user-form/user-form.component';
     TableModule, Button, ToggleSwitch, Tag, Toast, InputText, IconField, InputIcon,
     PageHeaderComponent,
     UserFormComponent,
+    DataTableContainerComponent,
   ],
   templateUrl: './people-list.component.html',
   providers: [MessageService],
