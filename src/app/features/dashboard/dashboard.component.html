@@ -1,0 +1,139 @@
+<div class="space-y-6">
+  <app-page-header title="Dashboard" subtitle="Visão geral do laboratório" />
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    @if (auth.hasPermission('Scheduling.Schedules.View')) {
+      <div class="bg-card border border-border rounded-lg p-4 flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
+          <i class="pi pi-calendar text-xl" aria-hidden="true"></i>
+        </div>
+        <div>
+          @if (pendingSchedulesLoading()) {
+            <p-skeleton width="3rem" height="1.75rem" styleClass="mb-1" />
+          } @else {
+            <p class="text-2xl font-semibold text-foreground">{{ pendingSchedulesCount() }}</p>
+          }
+          <p class="text-sm font-medium text-foreground">Agendamentos Pendentes</p>
+          <p class="text-xs text-muted-foreground">Aguardando aprovação</p>
+        </div>
+      </div>
+    }
+
+    @if (auth.hasPermission('Inventory.Materials.View')) {
+      <div class="bg-card border border-border rounded-lg p-4 flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 text-orange-600">
+          <i class="pi pi-box text-xl" aria-hidden="true"></i>
+        </div>
+        <div>
+          @if (lowStockLoading()) {
+            <p-skeleton width="3rem" height="1.75rem" styleClass="mb-1" />
+          } @else {
+            <p class="text-2xl font-semibold text-foreground">{{ lowStockMaterials().length }}</p>
+          }
+          <p class="text-sm font-medium text-foreground">Materiais em Falta</p>
+          <p class="text-xs text-muted-foreground">Abaixo do estoque mínimo</p>
+        </div>
+      </div>
+    }
+
+    @if (auth.hasPermission('Assets.Maintenance.View')) {
+      <div class="bg-card border border-border rounded-lg p-4 flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600">
+          <i class="pi pi-wrench text-xl" aria-hidden="true"></i>
+        </div>
+        <div>
+          @if (maintenanceLoading()) {
+            <p-skeleton width="3rem" height="1.75rem" styleClass="mb-1" />
+          } @else {
+            <p class="text-2xl font-semibold text-foreground">{{ maintenanceCount() }}</p>
+          }
+          <p class="text-sm font-medium text-foreground">Equipamentos em Manutenção</p>
+          <p class="text-xs text-muted-foreground">Indisponíveis no momento</p>
+        </div>
+      </div>
+    }
+
+    @if (auth.hasPermission('Scheduling.Schedules.View')) {
+      <div class="bg-card border border-border rounded-lg p-4 flex items-center gap-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600">
+          <i class="pi pi-check-circle text-xl" aria-hidden="true"></i>
+        </div>
+        <div>
+          @if (approvedSchedulesLoading()) {
+            <p-skeleton width="3rem" height="1.75rem" styleClass="mb-1" />
+          } @else {
+            <p class="text-2xl font-semibold text-foreground">{{ approvedSchedulesCount() }}</p>
+          }
+          <p class="text-sm font-medium text-foreground">Agendamentos Aprovados (mês)</p>
+          <p class="text-xs text-muted-foreground">Confirmados este mês</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    @if (auth.hasPermission('Inventory.Materials.View')) {
+      <div class="bg-card border border-border rounded-lg p-4">
+        <h2 class="flex items-center gap-2 text-base font-semibold text-foreground mb-4">
+          <i class="pi pi-exclamation-triangle text-orange-500" aria-hidden="true"></i>
+          Alertas de Estoque
+        </h2>
+        @if (lowStockLoading()) {
+          <div class="flex flex-col gap-3">
+            <p-skeleton height="2.5rem" />
+            <p-skeleton height="2.5rem" />
+            <p-skeleton height="2.5rem" />
+          </div>
+        } @else if (lowStockMaterials().length === 0) {
+          <p class="text-sm text-muted-foreground">Nenhum alerta.</p>
+        } @else {
+          <ul class="flex flex-col gap-3">
+            @for (material of lowStockMaterials(); track material.materialId) {
+              <li class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-medium text-foreground">{{ material.name }}</p>
+                  <p class="text-xs text-muted-foreground">{{ material.location }}</p>
+                </div>
+                <p-tag
+                  severity="danger"
+                  [value]="material.stockQuantity + ' ' + (material.unit | materialUnitLabel)"
+                />
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (auth.hasPermission('Scheduling.Schedules.View')) {
+      <div class="bg-card border border-border rounded-lg p-4">
+        <h2 class="text-base font-semibold text-foreground mb-4">Próximos Agendamentos</h2>
+        @if (upcomingSchedulesLoading()) {
+          <div class="flex flex-col gap-3">
+            <p-skeleton height="2.5rem" />
+            <p-skeleton height="2.5rem" />
+            <p-skeleton height="2.5rem" />
+            <p-skeleton height="2.5rem" />
+          </div>
+        } @else if (upcomingSchedules().length === 0) {
+          <p class="text-sm text-muted-foreground">Sem agendamentos próximos.</p>
+        } @else {
+          <ul class="flex flex-col gap-3">
+            @for (schedule of upcomingSchedules(); track schedule.id) {
+              <li class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-foreground">{{ schedule.scheduler.name }}</p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ equipmentNames(schedule) }} · {{ schedule.scheduling.date | date: 'dd/MM/yyyy' }} ·
+                    {{ schedule.scheduling.startDateHour | date: 'HH:mm' }}
+                  </p>
+                </div>
+                <p-tag [value]="statusLabels[schedule.status]" [severity]="statusSeverities[schedule.status]" />
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+</div>
