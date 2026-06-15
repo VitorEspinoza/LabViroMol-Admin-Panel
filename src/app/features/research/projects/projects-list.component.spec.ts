@@ -6,13 +6,13 @@ import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vi
 import { of, throwError } from 'rxjs';
 
 import { ProjectsListComponent } from './projects-list.component';
-import { ProjectsService } from '../../projects/projects.service';
-import { PartnersService } from '../../partners/partners.service';
-import { ResearchersService } from '../../researchers/researchers.service';
-import { AuthService } from '../../../../core/auth/auth.service';
-import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { ProjectSummary } from '../../../../shared/models/research.model';
-import { PagedResponse } from '../../../../shared/models/pagination.model';
+import { ProjectsService } from './projects.service';
+import { PartnersService } from '../partners/partners.service';
+import { ResearchersService } from '../researchers/researchers.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { ProjectSummary } from '../../../shared/models/research.model';
+import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const makeProject = (overrides: Partial<ProjectSummary> = {}): ProjectSummary => ({
   id: 'pr1',

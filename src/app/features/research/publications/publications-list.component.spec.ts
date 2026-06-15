@@ -6,12 +6,12 @@ import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vi
 import { of, throwError } from 'rxjs';
 
 import { PublicationsListComponent } from './publications-list.component';
-import { PublicationsService } from '../../publications/publications.service';
-import { ResearchersService } from '../../researchers/researchers.service';
-import { AuthService } from '../../../../core/auth/auth.service';
-import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { PublicationSummary } from '../../../../shared/models/research.model';
-import { PagedResponse } from '../../../../shared/models/pagination.model';
+import { PublicationsService } from './publications.service';
+import { ResearchersService } from '../researchers/researchers.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { PublicationSummary } from '../../../shared/models/research.model';
+import { PagedResponse } from '../../../shared/models/pagination.model';
 
 const makePublication = (overrides: Partial<PublicationSummary> = {}): PublicationSummary => ({
   id: 'pub1',

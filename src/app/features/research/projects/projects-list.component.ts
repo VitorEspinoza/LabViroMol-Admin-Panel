@@ -12,20 +12,21 @@ import { InputIcon } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 
-import { ProjectsService } from '../../projects/projects.service';
-import { ProjectStatus, ProjectSummary } from '../../../../shared/models/research.model';
-import { AuthService } from '../../../../core/auth/auth.service';
-import { PROJECT_STATUS_LABELS, PROJECT_STATUS_SEVERITIES } from '../../../../shared/utils/project-status';
+import { ProjectsService } from './projects.service';
+import { ProjectStatus, ProjectSummary } from '../../../shared/models/research.model';
+import { AuthService } from '../../../core/auth/auth.service';
+import { PROJECT_STATUS_LABELS, PROJECT_STATUS_SEVERITIES } from '../../../shared/utils/project-status';
 import { ProjectFormComponent } from './project-form/project-form.component';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
-import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
-import { TableSortCycle } from '../../../../shared/utils/table-sort-cycle';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-projects-list',
   imports: [
     TableModule, Button, Tag, Toast, InputText, IconField, InputIcon, DatePipe,
-    ProjectFormComponent, ProjectDetailComponent, DataTableContainerComponent,
+    ProjectFormComponent, ProjectDetailComponent, DataTableContainerComponent, PageHeaderComponent,
   ],
   templateUrl: './projects-list.component.html',
   providers: [MessageService],

@@ -10,8 +10,8 @@ import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 
-import { PublicationsService } from '../../../publications/publications.service';
-import { ResearchersService } from '../../../researchers/researchers.service';
+import { PublicationsService } from '../publications.service';
+import { ResearchersService } from '../../researchers/researchers.service';
 
 interface LinkedResearcher {
   researcherId: string | null;

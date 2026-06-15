@@ -11,20 +11,21 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
 
-import { PublicationsService } from '../../publications/publications.service';
-import { PublicationSummary } from '../../../../shared/models/research.model';
-import { AuthService } from '../../../../core/auth/auth.service';
-import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { PublicationsService } from './publications.service';
+import { PublicationSummary } from '../../../shared/models/research.model';
+import { AuthService } from '../../../core/auth/auth.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { PublicationFormComponent } from './publication-form/publication-form.component';
-import { DataTableContainerComponent } from '../../../../shared/components/data-table-container/data-table-container.component';
-import { TableSortCycle } from '../../../../shared/utils/table-sort-cycle';
+import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
+import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-publications-list',
   imports: [
     DatePipe,
     TableModule, Button, Toast, InputText, IconField, InputIcon,
-    PublicationFormComponent, DataTableContainerComponent,
+    PublicationFormComponent, DataTableContainerComponent, PageHeaderComponent,
   ],
   templateUrl: './publications-list.component.html',
   providers: [MessageService],

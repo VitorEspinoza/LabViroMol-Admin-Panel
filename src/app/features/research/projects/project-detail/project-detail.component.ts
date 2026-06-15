@@ -7,17 +7,17 @@ import { Tag } from 'primeng/tag';
 import { Select } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 
-import { ProjectsService } from '../../../projects/projects.service';
-import { ResearchersService } from '../../../researchers/researchers.service';
-import { AuthService } from '../../../../../core/auth/auth.service';
-import { ConfirmDialogService } from '../../../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { Project, ProjectRole, ProjectStatus } from '../../../../../shared/models/research.model';
+import { ProjectsService } from '../projects.service';
+import { ResearchersService } from '../../researchers/researchers.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { Project, ProjectRole, ProjectStatus } from '../../../../shared/models/research.model';
 import {
   PROJECT_ROLE_LABELS,
   PROJECT_ROLE_OPTIONS,
   PROJECT_STATUS_LABELS,
   PROJECT_STATUS_SEVERITIES,
-} from '../../../../../shared/utils/project-status';
+} from '../../../../shared/utils/project-status';
 
 @Component({
   selector: 'app-project-detail',

@@ -7,10 +7,10 @@ import { Textarea } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 
-import { ProjectsService } from '../../../projects/projects.service';
-import { PartnersService } from '../../../partners/partners.service';
-import { ResearchersService } from '../../../researchers/researchers.service';
-import { AuthService } from '../../../../../core/auth/auth.service';
+import { ProjectsService } from '../projects.service';
+import { PartnersService } from '../../partners/partners.service';
+import { ResearchersService } from '../../researchers/researchers.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-project-form',

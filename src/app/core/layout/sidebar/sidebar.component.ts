@@ -83,7 +83,8 @@ export class SidebarComponent {
         { label: 'Perfis', icon: 'pi pi-shield', route: '/identity/perfis', permission: 'Identity.Roles.View' },
         { label: 'Posições no Laboratório', icon: 'pi pi-id-card', route: '/research/posicoes', permission: 'Research.Positions.View' },
         { label: 'Parceiros', icon: 'pi pi-building', route: '/research/parceiros', permission: 'Research.Partners.View' },
-        { label: 'Conteúdo', icon: 'pi pi-book', route: '/research/conteudo', permission: 'Research.Projects.View' },
+        { label: 'Projetos', icon: 'pi pi-folder-open', route: '/research/projetos', permission: 'Research.Projects.View' },
+        { label: 'Publicações', icon: 'pi pi-book', route: '/research/publicacoes', permission: 'Research.Publications.View' },
       ],
     },
     {

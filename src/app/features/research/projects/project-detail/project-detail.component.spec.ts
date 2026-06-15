@@ -7,12 +7,12 @@ import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { ProjectDetailComponent } from './project-detail.component';
-import { ProjectsService } from '../../../projects/projects.service';
-import { ResearchersService } from '../../../researchers/researchers.service';
-import { AuthService } from '../../../../../core/auth/auth.service';
-import { ConfirmDialogService, ConfirmOptions } from '../../../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { Project, Researcher } from '../../../../../shared/models/research.model';
-import { PagedResponse } from '../../../../../shared/models/pagination.model';
+import { ProjectsService } from '../projects.service';
+import { ResearchersService } from '../../researchers/researchers.service';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { ConfirmDialogService, ConfirmOptions } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
+import { Project, Researcher } from '../../../../shared/models/research.model';
+import { PagedResponse } from '../../../../shared/models/pagination.model';
 
 const makeProject = (overrides: Partial<Project> = {}): Project => ({
   id: 'pr1',

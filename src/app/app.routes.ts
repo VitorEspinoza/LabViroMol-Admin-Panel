@@ -53,11 +53,22 @@ export const routes: Routes = [
         data: { title: 'Parceiros' },
       },
       {
-        path: 'research/conteudo',
+        path: 'research/projetos',
         canActivate: [permissionGuard('Research.Projects.View')],
         loadComponent: () =>
-          import('./features/research/content/content.component').then(m => m.ContentComponent),
-        data: { title: 'Conteúdo' },
+          import('./features/research/projects/projects-list.component').then(
+            m => m.ProjectsListComponent,
+          ),
+        data: { title: 'Projetos' },
+      },
+      {
+        path: 'research/publicacoes',
+        canActivate: [permissionGuard('Research.Publications.View')],
+        loadComponent: () =>
+          import('./features/research/publications/publications-list.component').then(
+            m => m.PublicationsListComponent,
+          ),
+        data: { title: 'Publicações' },
       },
       {
         path: 'inventory/estoque',
