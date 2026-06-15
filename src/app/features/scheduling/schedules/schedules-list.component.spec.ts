@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
@@ -47,7 +47,7 @@ describe('SchedulesListComponent', () => {
 
   let fixture: ComponentFixture<SchedulesListComponent>;
   let component: SchedulesListComponent;
-  let schedulesServiceMock: Mocked<Pick<SchedulesService, 'getSchedules' | 'approveSchedule' | 'refuseSchedule' | 'attachTerm'>>;
+  let schedulesServiceMock: Mocked<Pick<SchedulesService, 'getSchedules' | 'getScheduleById' | 'approveSchedule' | 'refuseSchedule' | 'attachTerm'>>;
   let authServiceMock: { hasPermission: ReturnType<typeof vi.fn> };
 
   const setup = async () => {
@@ -69,6 +69,7 @@ describe('SchedulesListComponent', () => {
   beforeEach(() => {
     schedulesServiceMock = {
       getSchedules: vi.fn().mockReturnValue(of(pagedSchedules([makeSchedule()]))),
+      getScheduleById: vi.fn().mockReturnValue(of(makeSchedule())),
       approveSchedule: vi.fn().mockReturnValue(of(undefined)),
       refuseSchedule: vi.fn().mockReturnValue(of(undefined)),
       attachTerm: vi.fn().mockReturnValue(of(undefined)),
@@ -175,6 +176,34 @@ describe('SchedulesListComponent', () => {
       (component as any).onTermAttached();
 
       expect(schedulesServiceMock.getSchedules).toHaveBeenCalled();
+    });
+  });
+
+  describe('abertura a partir de notificação (query param highlight)', () => {
+    it('busca o agendamento e abre o diálogo de detalhes', async () => {
+      const schedule = makeSchedule();
+
+      await TestBed.configureTestingModule({
+        imports: [SchedulesListComponent],
+        providers: [
+          provideNoopAnimations(),
+          provideRouter([]),
+          {
+            provide: ActivatedRoute,
+            useValue: { queryParamMap: of(convertToParamMap({ highlight: 'sch1' })) },
+          },
+          { provide: SchedulesService, useValue: schedulesServiceMock },
+          { provide: AuthService, useValue: authServiceMock },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(SchedulesListComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(schedulesServiceMock.getScheduleById).toHaveBeenCalledWith('sch1');
+      expect((component as any).detailDialogVisible()).toBe(true);
+      expect((component as any).selectedSchedule()).toEqual(schedule);
     });
   });
 });

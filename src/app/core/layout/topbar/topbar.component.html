@@ -11,8 +11,12 @@
       [text]="true"
       severity="secondary"
       [rounded]="true"
+      [badge]="unreadBadge()"
+      badgeSeverity="danger"
       aria-label="Notificações"
+      (click)="openNotifications($event)"
     />
+    <app-notification-panel #notificationPanel />
 
     <button
       type="button"

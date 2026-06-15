@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TopbarComponent } from './topbar.component';
 import { AuthService } from '../../auth/auth.service';
 import { SessionUser } from '../../auth/session.model';
@@ -29,6 +31,7 @@ describe('TopbarComponent', () => {
 
   let fixture: ComponentFixture<TopbarComponent>;
   let component: TopbarComponent;
+  let http: HttpTestingController;
   let authMock: {
     currentUser: WritableSignal<SessionUser | null>;
     logout: ReturnType<typeof vi.fn>;
@@ -49,14 +52,21 @@ describe('TopbarComponent', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: AuthService, useValue: authMock },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TopbarComponent);
     component = fixture.componentInstance;
+    http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    http.expectOne('http://localhost:5085/api/notify/notifications').flush([]);
   });
+
+  afterEach(() => http.verify());
 
   it('deve criar o componente', () => {
     expect(component).toBeTruthy();

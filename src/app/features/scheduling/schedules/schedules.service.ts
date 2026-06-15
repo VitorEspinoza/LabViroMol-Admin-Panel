@@ -25,6 +25,10 @@ export class SchedulesService {
     return this.http.get<Schedule[]>(`${this.base}/pending`);
   }
 
+  getScheduleById(id: string): Observable<Schedule> {
+    return this.http.get<Schedule>(`${this.base}/${id}`);
+  }
+
   approveSchedule(id: string): Observable<void> {
     return this.http.post<void>(`${this.base}/${id}/approve`, null);
   }
