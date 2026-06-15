@@ -104,6 +104,15 @@ export const routes: Routes = [
           ),
         data: { title: 'Equipamentos' },
       },
+      {
+        path: 'scheduling/solicitacoes',
+        canActivate: [permissionGuard('Scheduling.Schedules.View')],
+        loadComponent: () =>
+          import('./features/scheduling/schedules/schedules-list.component').then(
+            m => m.SchedulesListComponent,
+          ),
+        data: { title: 'Agendamentos' },
+      },
     ],
   },
   {
