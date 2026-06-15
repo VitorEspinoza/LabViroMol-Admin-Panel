@@ -111,10 +111,10 @@ export class PublicationFormComponent {
         this.publicationDate.set(publication.publicationDate);
 
         const sortedAuthors = [...publication.authors].sort((a, b) => a.order - b.order);
-        const linked: LinkedResearcher[] = sortedAuthors.map(author => {
-          const match = this.researcherOptions().find(r => r.label === author.name);
-          return { researcherId: match?.value ?? null, name: author.name };
-        });
+        const linked: LinkedResearcher[] = sortedAuthors.map(author => ({
+          researcherId: author.researcherId,
+          name: author.name,
+        }));
         this.linkedResearchers.set(linked);
 
         this.loading.set(false);

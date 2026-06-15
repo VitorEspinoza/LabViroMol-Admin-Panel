@@ -109,6 +109,7 @@ export interface TransferLeadershipRequest {
 // Publicações
 
 export interface PublicationAuthor {
+  researcherId: string;
   name: string;
   order: number;
 }

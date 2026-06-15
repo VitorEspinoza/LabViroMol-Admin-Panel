@@ -29,7 +29,7 @@ const mockPublication: Publication = {
   publicationDate: '2024-01-01T00:00:00Z',
   publishedOn: 'Nature',
   publishUrl: 'https://nature.com/articles/xyz123',
-  authors: [{ name: 'Ana Silva', order: 1 }],
+  authors: [{ researcherId: 'researcher1', name: 'Ana Silva', order: 1 }],
   createdAt: '2024-01-01T00:00:00Z',
 };
 
