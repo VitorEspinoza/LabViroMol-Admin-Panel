@@ -23,6 +23,7 @@ export interface CreateEquipmentRequest {
   model: string;
   code: string;
   description: string;
+  location?: string | null;
 }
 
 export interface UpdateEquipmentRequest {

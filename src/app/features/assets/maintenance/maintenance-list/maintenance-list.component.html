@@ -1,3 +1,5 @@
+<p-toast position="bottom-right" />
+
 <div class="space-y-4">
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
     <p-iconfield class="w-full md:max-w-sm">
@@ -30,8 +32,8 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Equipamento</th>
-        <th>Descrição</th>
+        <th pSortableColumn="equipmentName">Equipamento <p-sortIcon field="equipmentName" /></th>
+        <th pSortableColumn="description">Descrição <p-sortIcon field="description" /></th>
         <th class="hidden md:table-cell">Problema</th>
         <th pSortableColumn="createdAt">Criação <p-sortIcon field="createdAt" /></th>
         <th>Status</th>

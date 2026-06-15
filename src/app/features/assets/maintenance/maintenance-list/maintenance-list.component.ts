@@ -10,6 +10,7 @@ import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
+import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { MaintenanceService } from '../maintenance.service';
@@ -23,10 +24,11 @@ import { MaintenanceFormComponent } from '../maintenance-form/maintenance-form.c
   selector: 'app-maintenance-list',
   imports: [
     FormsModule, DatePipe,
-    TableModule, Button, Tag, InputText, IconField, InputIcon,
+    TableModule, Button, Tag, InputText, IconField, InputIcon, Toast,
     MaintenanceFormComponent,
   ],
   templateUrl: './maintenance-list.component.html',
+  providers: [MessageService],
 })
 export class MaintenanceListComponent {
   private readonly maintenanceService = inject(MaintenanceService);
@@ -68,9 +70,13 @@ export class MaintenanceListComponent {
     this.first.set(first);
     this.rows.set(size);
 
+    const sortField = event?.sortField;
+    const sortBy = typeof sortField === 'string' ? sortField : undefined;
+    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+
     this.loading.set(true);
     this.maintenanceService
-      .getMaintenanceRequests({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined })
+      .getMaintenanceRequests({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection })
       .subscribe({
         next: res => {
           this.requests.set(res.data);

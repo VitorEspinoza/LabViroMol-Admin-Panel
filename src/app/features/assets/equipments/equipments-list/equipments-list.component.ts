@@ -8,6 +8,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
+import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { EquipmentsService } from '../equipments.service';
@@ -15,17 +16,20 @@ import { Equipment } from '../../../../shared/models/assets.model';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { environment } from '../../../../../environments/environment';
 import { EquipmentFormComponent } from '../equipment-form/equipment-form.component';
+import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 @Component({
   selector: 'app-equipments-list',
-  imports: [FormsModule, TableModule, Button, InputText, IconField, InputIcon, EquipmentFormComponent],
+  imports: [FormsModule, TableModule, Button, InputText, IconField, InputIcon, Toast, EquipmentFormComponent],
   templateUrl: './equipments-list.component.html',
+  providers: [MessageService],
 })
 export class EquipmentsListComponent {
   private readonly equipmentsService = inject(EquipmentsService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   protected readonly auth = inject(AuthService);
 
   protected readonly equipments = signal<Equipment[]>([]);
@@ -64,9 +68,13 @@ export class EquipmentsListComponent {
     this.first.set(first);
     this.rows.set(size);
 
+    const sortField = event?.sortField;
+    const sortBy = typeof sortField === 'string' ? sortField : undefined;
+    const sortDirection = sortBy ? (event?.sortOrder === -1 ? 'desc' : 'asc') : undefined;
+
     this.loading.set(true);
     this.equipmentsService
-      .getEquipments({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined })
+      .getEquipments({ pageNumber: page, pageSize: size, search: this.searchQuery() || undefined, sortBy, sortDirection })
       .subscribe({
         next: res => {
           this.equipments.set(res.data);
@@ -138,6 +146,30 @@ export class EquipmentsListComponent {
           severity: 'error',
           summary: 'Erro',
           detail: this.extractErrorMessage(err, 'Não foi possível enviar a imagem.'),
+        });
+      },
+    });
+  }
+
+  protected confirmDelete(equipment: Equipment): void {
+    this.confirmDialogService.confirm({
+      header: 'Excluir Equipamento',
+      message: `Deseja realmente excluir o equipamento "${equipment.name}"?`,
+      accept: () => this.deleteEquipment(equipment),
+    });
+  }
+
+  private deleteEquipment(equipment: Equipment): void {
+    this.equipmentsService.deleteEquipment(equipment.equipmentId).subscribe({
+      next: () => {
+        this.loadEquipments();
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Equipamento excluído com sucesso.' });
+      },
+      error: err => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: this.extractErrorMessage(err, 'Não foi possível excluir o equipamento.'),
         });
       },
     });

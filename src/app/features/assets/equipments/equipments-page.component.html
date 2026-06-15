@@ -1,12 +1,10 @@
-<p-toast position="bottom-right" />
-
 <div class="space-y-6">
   <app-page-header
     title="Equipamentos"
     subtitle="Gerencie o inventário de equipamentos e as solicitações de manutenção."
   />
 
-  <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event)">
+  <p-tabs value="equipments" [lazy]="true">
     <p-tablist>
       <p-tab value="equipments">Equipamentos</p-tab>
       @if (auth.hasPermission('Assets.Maintenance.View')) {

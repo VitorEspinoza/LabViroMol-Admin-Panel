@@ -1,3 +1,5 @@
+<p-toast position="bottom-right" />
+
 <div class="space-y-4">
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
     <p-iconfield class="w-full md:max-w-sm">
@@ -31,10 +33,10 @@
     <ng-template pTemplate="header">
       <tr>
         <th></th>
-        <th pSortableColumn="code">Código <p-sortIcon field="code" /></th>
+        <th>Código</th>
         <th pSortableColumn="name">Nome <p-sortIcon field="name" /></th>
-        <th>Modelo</th>
-        <th>Marca</th>
+        <th pSortableColumn="model">Modelo <p-sortIcon field="model" /></th>
+        <th pSortableColumn="brand">Marca <p-sortIcon field="brand" /></th>
         <th class="hidden md:table-cell">Localização</th>
         <th>Ações</th>
       </tr>
@@ -79,6 +81,14 @@
                 size="small"
                 [loading]="uploadingEquipmentId() === equipment.equipmentId"
                 (onClick)="triggerImageUpload(equipment)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                [text]="true"
+                [rounded]="true"
+                severity="danger"
+                size="small"
+                (onClick)="confirmDelete(equipment)"
               />
             </div>
           }

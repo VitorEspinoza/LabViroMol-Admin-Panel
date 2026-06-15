@@ -10,6 +10,37 @@
   <form [formGroup]="form" novalidate>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
 
+      <div class="flex flex-col gap-2 md:col-span-2">
+        <label class="text-sm font-medium">Foto</label>
+        <div class="flex items-center gap-3">
+          @if (imagePreviewUrl()) {
+            <img [src]="imagePreviewUrl()" alt="" class="w-16 h-16 rounded object-cover border border-border" />
+          } @else {
+            <div class="w-16 h-16 rounded bg-gray-100 flex items-center justify-center text-muted-foreground border border-border">
+              <i class="pi pi-image" aria-hidden="true"></i>
+            </div>
+          }
+          <p-button
+            label="Selecionar Imagem"
+            icon="pi pi-camera"
+            [outlined]="true"
+            severity="secondary"
+            size="small"
+            type="button"
+            [disabled]="saving()"
+            (onClick)="triggerImageSelect()"
+          />
+        </div>
+        <span class="text-xs text-muted-foreground">A imagem será enviada ao clicar em "Salvar".</span>
+        <input
+          #fileInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          class="hidden"
+          (change)="onImageSelected($event)"
+        />
+      </div>
+
       <div class="flex flex-col gap-1 md:col-span-2">
         <label for="name" class="text-sm font-medium">Nome <span class="text-red-500">*</span></label>
         <input pInputText id="name" formControlName="name" class="w-full" />
@@ -42,12 +73,10 @@
         }
       </div>
 
-      @if (isEditing()) {
-        <div class="flex flex-col gap-1">
-          <label for="location" class="text-sm font-medium">Localização</label>
-          <input pInputText id="location" formControlName="location" class="w-full" />
-        </div>
-      }
+      <div class="flex flex-col gap-1">
+        <label for="location" class="text-sm font-medium">Localização</label>
+        <input pInputText id="location" formControlName="location" class="w-full" />
+      </div>
 
       <div class="flex flex-col gap-1 md:col-span-2">
         <label for="description" class="text-sm font-medium">Descrição <span class="text-red-500">*</span></label>
