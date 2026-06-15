@@ -5,31 +5,34 @@
   aria-label="Menu principal"
 >
   <div
-    class="flex items-center px-4 py-5 border-b border-border shrink-0"
+    class="flex items-center px-4 py-5 border-b border-sidebar-border shrink-0"
     [class.justify-between]="!displayCollapsed()"
     [class.justify-center]="displayCollapsed()"
   >
     <div class="flex items-center overflow-hidden" [class.gap-3]="!displayCollapsed()">
-      <img
-        ngSrc="images/logo.png"
-        alt="Logo LabViroMol"
-        width="24"
-        height="24"
-        priority
-        class="shrink-0"
-      />
+      @if (!displayCollapsed()) {
+        <div class="flex items-center justify-center w-8 h-8 rounded-md bg-white shrink-0 p-1">
+          <img
+            ngSrc="images/logo.png"
+            alt="Logo LabViroMol"
+            width="24"
+            height="24"
+            priority
+          />
+        </div>
+      }
       <div
         class="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out"
         [style.maxWidth]="displayCollapsed() ? '0' : '12rem'"
         [style.opacity]="displayCollapsed() ? '0' : '1'"
       >
-        <p class="font-semibold text-foreground leading-tight">LabViroMol</p>
-        <p class="text-xs text-muted-foreground">Gestão Administrativa</p>
+        <p class="font-semibold text-sidebar-foreground leading-tight">LabViroMol</p>
+        <p class="text-xs text-sidebar-muted-foreground">Gestão Administrativa</p>
       </div>
     </div>
     <button
       type="button"
-      class="flex items-center justify-center w-6 h-6 rounded hover:bg-muted transition-colors text-muted-foreground shrink-0"
+      class="flex items-center justify-center w-6 h-6 rounded hover:bg-sidebar-accent transition-colors text-sidebar-muted-foreground shrink-0"
       (click)="onToggleCollapseClick()"
       [attr.aria-label]="displayCollapsed() ? 'Expandir menu' : 'Recolher menu'"
     >
@@ -45,9 +48,9 @@
 
     <a
       routerLink="/dashboard"
-      routerLinkActive="bg-muted text-primary font-medium"
+      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+      class="flex items-center px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
       [class.gap-3]="!displayCollapsed()"
       [class.justify-center]="displayCollapsed()"
     >
@@ -59,14 +62,14 @@
       >Dashboard</span>
     </a>
 
-    <div class="border-t border-border my-2"></div>
+    <div class="border-t border-sidebar-border my-2"></div>
 
     @for (group of visibleGroups(); track group.key) {
       <div>
         <button
           type="button"
-          class="w-full flex items-center px-3 py-2 rounded-lg text-sm text-foreground
-                 hover:bg-muted transition-colors cursor-pointer"
+          class="w-full flex items-center px-3 py-2 rounded-lg text-sm text-sidebar-foreground
+                 hover:bg-sidebar-accent transition-colors cursor-pointer"
           [class.gap-3]="!displayCollapsed()"
           [class.justify-center]="displayCollapsed()"
           (click)="toggleGroup(group.key)"
@@ -98,9 +101,9 @@
               @for (item of group.visibleItems; track item.route) {
                 <a
                   [routerLink]="item.route"
-                  routerLinkActive="bg-muted text-primary font-medium"
-                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-foreground
-                         hover:bg-muted transition-colors"
+                  routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground
+                         hover:bg-sidebar-accent transition-colors"
                 >
                   <i [class]="item.icon + ' text-sm shrink-0'" aria-hidden="true"></i>
                   <span>{{ item.label }}</span>
@@ -113,9 +116,9 @@
     }
   </div>
 
-  <div class="border-t border-border px-4 py-3 shrink-0">
+  <div class="border-t border-sidebar-border px-4 py-3 shrink-0">
     <span
-      class="text-xs text-muted-foreground overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out block"
+      class="text-xs text-sidebar-muted-foreground overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out block"
       [style.maxWidth]="displayCollapsed() ? '0' : '12rem'"
       [style.opacity]="displayCollapsed() ? '0' : '1'"
     >v{{ version }}</span>

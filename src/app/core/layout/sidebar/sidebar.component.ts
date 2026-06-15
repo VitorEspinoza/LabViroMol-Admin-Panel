@@ -50,7 +50,7 @@ export class SidebarComponent {
 
   protected readonly navClasses = computed(() => {
     const widthClass = this.displayCollapsed() ? 'w-16' : 'w-64';
-    return `fixed left-0 top-0 h-screen ${widthClass} bg-card border-r border-border flex flex-col z-30 transition-all duration-300 ease-in-out`;
+    return `fixed left-0 top-0 h-screen ${widthClass} bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-all duration-300 ease-in-out`;
   });
 
   protected readonly navGroups: NavGroup[] = [

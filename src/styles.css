@@ -12,6 +12,14 @@
   --color-muted: #e8f1ed;
   --color-card: #ffffff;
   --color-muted-foreground: #4b5953;
+
+  /* Sidebar — fundo na mesma cor de destaque (primary) usada nos botões */
+  --color-sidebar: var(--color-primary);
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-border: #00555c;
+  --color-sidebar-accent: #00474d;
+  --color-sidebar-accent-foreground: #ffffff;
+  --color-sidebar-muted-foreground: #bfe8e4;
 }
 
 /* Evita que p-multiselect com display="chip" rompa o layout do formulário
