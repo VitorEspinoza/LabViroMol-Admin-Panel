@@ -18,7 +18,7 @@ const makePublication = (overrides: Partial<PublicationSummary> = {}): Publicati
   title: 'Estudo sobre Arboviroses Emergentes',
   doi: '10.1000/xyz123',
   publicationDate: '2026-01-10',
-  citationName: 'Ana Silva',
+  authors: [{ researcherId: 'researcher1', name: 'Ana Silva', order: 1 }],
   ...overrides,
 });
 

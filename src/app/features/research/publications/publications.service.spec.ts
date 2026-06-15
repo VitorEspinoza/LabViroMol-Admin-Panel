@@ -18,7 +18,7 @@ const mockPublicationSummary: PublicationSummary = {
   title: 'Variantes Emergentes do SARS-CoV-2',
   doi: '10.1000/xyz123',
   publicationDate: '2024-01-01T00:00:00Z',
-  citationName: 'Silva, A. et al.',
+  authors: [{ researcherId: 'researcher1', name: 'Silva, A. et al.', order: 1 }],
 };
 
 const mockPublication: Publication = {

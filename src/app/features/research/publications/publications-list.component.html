@@ -53,7 +53,9 @@
           <span class="font-mono text-xs">{{ publication.doi || '—' }}</span>
         </td>
         <td>{{ publication.publicationDate ? (publication.publicationDate | date: 'dd/MM/yyyy') : '—' }}</td>
-        <td>{{ publication.citationName || '—' }}</td>
+        <td>
+          <span class="block max-w-xs truncate" [title]="authorsLabel(publication)">{{ authorsLabel(publication) || '—' }}</span>
+        </td>
         <td>
           @if (auth.hasPermission('Research.Publications.Manage')) {
             <p-button

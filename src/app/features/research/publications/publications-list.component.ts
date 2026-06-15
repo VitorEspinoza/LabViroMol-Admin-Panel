@@ -130,6 +130,10 @@ export class PublicationsListComponent {
     });
   }
 
+  protected authorsLabel(publication: PublicationSummary): string {
+    return publication.authors.map(author => author.name).join(', ');
+  }
+
   private extractErrorMessage(err: unknown, fallback: string): string {
     const body = (err as { error?: { errors?: unknown; error?: string } })?.error;
     if (Array.isArray(body?.errors) && body.errors.length > 0) return String(body.errors[0]);

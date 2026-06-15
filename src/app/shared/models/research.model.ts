@@ -131,7 +131,7 @@ export interface PublicationSummary {
   title: string;
   doi: string;
   publicationDate: string;
-  citationName: string;
+  authors: PublicationAuthor[];
 }
 
 export interface CreatePublicationRequest {
