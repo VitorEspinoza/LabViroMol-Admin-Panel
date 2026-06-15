@@ -6,7 +6,7 @@ import { Button } from 'primeng/button';
   selector: 'app-confirm-dialog',
   imports: [ConfirmDialog, Button],
   template: `
-    <p-confirmdialog>
+    <p-confirmdialog styleClass="!bg-transparent !border-none !shadow-none !rounded-none !p-0">
       <ng-template #headless let-message let-onAccept="onAccept" let-onReject="onReject">
         <div
           class="rounded-xl border border-border bg-card shadow-lg w-full max-w-[480px] mx-4 overflow-hidden"
