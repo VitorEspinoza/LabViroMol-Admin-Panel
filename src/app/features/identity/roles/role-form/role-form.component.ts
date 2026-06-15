@@ -63,7 +63,7 @@ export class RoleFormComponent {
   private cascadeSubscriptions = new Subscription();
 
   protected readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
+    name: ['', [Validators.required, Validators.maxLength(50)]],
     permissions: this.fb.array<FormControl<boolean>>([]),
   });
 

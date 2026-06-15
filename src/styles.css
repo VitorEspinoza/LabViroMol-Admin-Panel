@@ -13,3 +13,28 @@
   --color-card: #ffffff;
   --color-muted-foreground: #4b5953;
 }
+
+/* Evita que p-multiselect com display="chip" rompa o layout do formulário
+   quando o texto de uma opção selecionada (ex.: nome de um Perfil) é longo:
+   os chips quebram em múltiplas linhas e cada chip trunca seu próprio texto. */
+.p-multiselect-label-container {
+  min-width: 0;
+}
+
+.p-multiselect-display-chip .p-multiselect-label {
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+}
+
+.p-multiselect-chip-item {
+  max-width: 100%;
+}
+
+.p-multiselect-chip-item .p-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 14rem;
+}

@@ -10,9 +10,12 @@
   <form [formGroup]="form" novalidate>
     <div class="flex flex-col gap-1 mb-4">
       <label for="name" class="text-sm font-medium">Nome <span class="text-red-500">*</span></label>
-      <input pInputText id="name" formControlName="name" class="w-full" />
+      <input pInputText id="name" formControlName="name" maxlength="50" class="w-full" />
       @if (form.get('name')?.errors?.['required'] && form.get('name')?.touched) {
         <span class="text-xs text-red-500">Nome é obrigatório.</span>
+      }
+      @if (form.get('name')?.errors?.['maxlength']) {
+        <span class="text-xs text-red-500">Nome deve ter no máximo 50 caracteres.</span>
       }
       @if (form.get('name')?.errors?.['serverError']) {
         <span class="text-xs text-red-500">{{ form.get('name')?.errors?.['serverError'] }}</span>
