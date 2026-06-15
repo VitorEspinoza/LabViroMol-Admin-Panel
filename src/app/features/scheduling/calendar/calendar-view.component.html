@@ -1,0 +1,76 @@
+<div class="space-y-6">
+  <app-page-header
+    title="Calendário / Reservas"
+    subtitle="Visão consolidada das reservas confirmadas."
+  />
+
+  @if (loading()) {
+    <div class="flex flex-col gap-6">
+      @for (item of skeletonItems; track $index) {
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <p-skeleton shape="circle" size="3rem" />
+            <p-skeleton width="12rem" height="1.25rem" />
+          </div>
+          <div class="flex items-start gap-4 rounded-xl border border-border bg-card p-4">
+            <p-skeleton width="5rem" height="3rem" borderRadius="0.75rem" />
+            <div class="flex flex-col gap-2 flex-1">
+              <p-skeleton width="40%" height="1.25rem" />
+              <p-skeleton width="60%" height="1rem" />
+            </div>
+            <p-skeleton width="5rem" height="1.5rem" borderRadius="1rem" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (scheduleGroups().length === 0) {
+    <div class="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card py-20 text-muted-foreground">
+      <i class="pi pi-calendar text-5xl"></i>
+      <p class="text-base">Nenhuma reserva confirmada.</p>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-8">
+      @for (group of scheduleGroups(); track group.date) {
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col items-center justify-center rounded-xl bg-primary text-white min-w-[3.25rem] leading-none py-2 shadow-sm">
+              <span class="text-[0.65rem] font-medium uppercase tracking-wide">{{ group.month }}</span>
+              <span class="text-lg font-bold">{{ group.day }}</span>
+            </div>
+            <div>
+              <h2 class="font-semibold text-foreground">{{ group.weekday }}</h2>
+              <p class="text-sm text-muted-foreground">{{ group.date | date: 'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 border-l-2 border-border pl-4 ml-6">
+            @for (schedule of group.schedules; track schedule.id) {
+              <div class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
+                <div class="flex flex-row sm:flex-col items-center justify-center gap-1 rounded-lg bg-primary/10 px-4 py-2 sm:min-w-[5.5rem] shrink-0">
+                  <span class="text-sm font-semibold text-primary">{{ schedule.scheduling.startDateHour | date: 'HH:mm' }}</span>
+                  <span class="text-xs text-muted-foreground">até</span>
+                  <span class="text-sm font-semibold text-primary">{{ schedule.scheduling.endDateHour | date: 'HH:mm' }}</span>
+                </div>
+
+                <div class="flex flex-1 flex-col gap-1.5 min-w-0">
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-semibold text-foreground truncate">{{ schedule.projectTitle }}</h3>
+                    <p-tag [value]="statusLabel(schedule.status)" [severity]="statusSeverity(schedule.status)" />
+                  </div>
+                  <p class="flex items-center gap-2 text-sm text-muted-foreground">
+                    <i class="pi pi-user text-xs" aria-hidden="true"></i>
+                    <span class="truncate">{{ schedule.scheduler.name }} · {{ schedule.scheduler.course }}</span>
+                  </p>
+                  <p class="flex items-center gap-2 text-sm text-muted-foreground">
+                    <i class="pi pi-id-card text-xs" aria-hidden="true"></i>
+                    <span class="truncate">Orientador(a): {{ schedule.advisorProfessor }}</span>
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

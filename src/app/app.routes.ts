@@ -104,6 +104,24 @@ export const routes: Routes = [
           ),
         data: { title: 'Equipamentos' },
       },
+      {
+        path: 'scheduling/solicitacoes',
+        canActivate: [permissionGuard('Scheduling.Schedules.View')],
+        loadComponent: () =>
+          import('./features/scheduling/schedules/schedules-list.component').then(
+            m => m.SchedulesListComponent,
+          ),
+        data: { title: 'Agendamentos' },
+      },
+      {
+        path: 'scheduling/calendario',
+        canActivate: [permissionGuard('Scheduling.Schedules.View')],
+        loadComponent: () =>
+          import('./features/scheduling/calendar/calendar-view.component').then(
+            m => m.CalendarViewComponent,
+          ),
+        data: { title: 'Calendário / Reservas' },
+      },
     ],
   },
   {
