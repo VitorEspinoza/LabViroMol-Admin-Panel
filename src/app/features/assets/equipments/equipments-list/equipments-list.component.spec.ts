@@ -10,6 +10,7 @@ import { EquipmentsService } from '../equipments.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { Equipment } from '../../../../shared/models/assets.model';
 import { PagedResponse } from '../../../../shared/models/pagination.model';
+import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 const makeEquipment = (overrides: Partial<Equipment> = {}): Equipment => ({
   equipmentId: 'eq1',
@@ -48,6 +49,7 @@ describe('EquipmentsListComponent', () => {
   let component: EquipmentsListComponent;
   let equipmentsServiceMock: Mocked<Pick<EquipmentsService, 'getEquipments' | 'getEquipmentById' | 'createEquipment' | 'updateEquipment' | 'uploadImage'>>;
   let authServiceMock: { hasPermission: ReturnType<typeof vi.fn> };
+  let confirmDialogServiceMock: { confirm: ReturnType<typeof vi.fn> };
 
   const setup = async () => {
     await TestBed.configureTestingModule({
@@ -58,6 +60,7 @@ describe('EquipmentsListComponent', () => {
         MessageService,
         { provide: EquipmentsService, useValue: equipmentsServiceMock },
         { provide: AuthService, useValue: authServiceMock },
+        { provide: ConfirmDialogService, useValue: confirmDialogServiceMock },
       ],
     }).compileComponents();
 
@@ -75,6 +78,7 @@ describe('EquipmentsListComponent', () => {
       uploadImage: vi.fn(),
     };
     authServiceMock = { hasPermission: vi.fn().mockReturnValue(true) };
+    confirmDialogServiceMock = { confirm: vi.fn() };
   });
 
   it('deve criar o componente e carregar os equipamentos ao inicializar', async () => {
