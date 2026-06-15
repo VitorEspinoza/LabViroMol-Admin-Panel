@@ -10,14 +10,21 @@
     [class.justify-center]="displayCollapsed()"
   >
     <div class="flex items-center overflow-hidden" [class.gap-3]="!displayCollapsed()">
-      <i class="pi pi-flask text-primary text-xl shrink-0" aria-hidden="true"></i>
+      <img
+        ngSrc="images/logo.png"
+        alt="Logo LabViroMol"
+        width="24"
+        height="24"
+        priority
+        class="shrink-0"
+      />
       <div
         class="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out"
         [style.maxWidth]="displayCollapsed() ? '0' : '12rem'"
         [style.opacity]="displayCollapsed() ? '0' : '1'"
       >
         <p class="font-semibold text-foreground leading-tight">LabViroMol</p>
-        <p class="text-xs text-muted-foreground">Lab Management</p>
+        <p class="text-xs text-muted-foreground">Gestão Administrativa</p>
       </div>
     </div>
     <button

@@ -4,6 +4,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
+import { definePreset } from '@primeuix/themes';
 import { ConfirmationService } from 'primeng/api';
 import { catchError, firstValueFrom, of } from 'rxjs';
 
@@ -11,6 +12,24 @@ import { routes } from './app.routes';
 import { credentialsInterceptor } from './core/http/credentials.interceptor';
 import { authErrorInterceptor } from './core/http/auth-error.interceptor';
 import { AuthService } from './core/auth/auth.service';
+
+const LabViroMolPreset = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50: '#e5fdff',
+      100: '#c2fbff',
+      200: '#85f6ff',
+      300: '#3df1ff',
+      400: '#00c7d6',
+      500: '#00676f',
+      600: '#00555c',
+      700: '#00474d',
+      800: '#00393d',
+      900: '#002b2e',
+      950: '#001c1f',
+    },
+  },
+});
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,7 +44,7 @@ export const appConfig: ApplicationConfig = {
     ConfirmationService,
     providePrimeNG({
       theme: {
-        preset: Aura,
+        preset: LabViroMolPreset,
         options: {
           prefix: 'p',
           darkModeSelector: '.dark',
