@@ -77,19 +77,32 @@
             </div>
 
             <div class="flex flex-col gap-1">
-              <label for="roleIds" class="text-sm font-medium">Perfis</label>
-              <p-multiselect
-                inputId="roleIds"
-                formControlName="roleIds"
-                [options]="roles()"
-                optionLabel="name"
-                optionValue="roleId"
-                placeholder="Selecione os perfis"
-                display="chip"
-                appendTo="body"
-                styleClass="w-full"
-                [showClear]="true"
-              />
+              <label class="text-sm font-medium">Perfis</label>
+              @if (readOnly()) {
+                <div class="flex flex-wrap gap-1 min-h-9 items-center">
+                  @for (name of selectedRoleNames(); track name) {
+                    <p-tag [value]="name" severity="info" />
+                  } @empty {
+                    <span class="text-sm text-muted-foreground">Nenhum perfil atribuído.</span>
+                  }
+                </div>
+              } @else {
+                <p-multiselect
+                  inputId="roleIds"
+                  formControlName="roleIds"
+                  [options]="roles()"
+                  optionLabel="name"
+                  optionValue="roleId"
+                  placeholder="Selecione os perfis"
+                  display="chip"
+                  appendTo="body"
+                  class="w-full"
+                  styleClass="w-full"
+                  [showClear]="true"
+                  [maxSelectedLabels]="1"
+                  selectedItemsLabel="{0} perfis selecionados"
+                />
+              }
             </div>
 
             <div class="flex flex-col gap-1">

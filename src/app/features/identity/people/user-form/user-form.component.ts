@@ -7,6 +7,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
+import { Tag } from 'primeng/tag';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
@@ -23,7 +24,7 @@ import { DEGREE_LEVEL_OPTIONS } from '../../../../shared/utils/degree-level';
   selector: 'app-user-form',
   imports: [
     ReactiveFormsModule,
-    Dialog, Button, InputText, MultiSelect, Select, ToggleSwitch,
+    Dialog, Button, InputText, MultiSelect, Select, Tag, ToggleSwitch,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     PhoneMaskDirective,
   ],
@@ -43,6 +44,7 @@ export class UserFormComponent {
 
   protected readonly saving = signal(false);
   protected readonly loadingUser = signal(false);
+  protected readonly selectedRoleNames = signal<string[]>([]);
   protected readonly positionOptions = signal<{ label: string; value: string }[]>([]);
   protected readonly degreeLevelOptions = DEGREE_LEVEL_OPTIONS;
   protected readonly isEditing = computed(() => this.user() !== null);
@@ -79,6 +81,7 @@ export class UserFormComponent {
         if (this.form.controls.research.disabled) return;
         this.applyResearchValidators(enabled);
       });
+
   }
 
   private applyResearchValidators(enabled: boolean): void {
@@ -98,6 +101,7 @@ export class UserFormComponent {
     if (!u) {
       this.form.reset();
       this.form.enable();
+      this.selectedRoleNames.set([]);
       return;
     }
 
@@ -105,8 +109,10 @@ export class UserFormComponent {
     this.form.disable();
     this.usersService.getUserById(u.userId).subscribe({
       next: detail => {
+        const userRoles = detail.roles ?? [];
+        this.selectedRoleNames.set(userRoles);
         const roleIds = this.roles()
-          .filter(r => (detail.roles ?? []).includes(r.name))
+          .filter(r => userRoles.includes(r.name))
           .map(r => r.roleId);
         this.form.patchValue({
           firstName: detail.firstName,
