@@ -9,6 +9,7 @@ import { MessageService } from 'primeng/api';
 import { RolesService } from './roles.service';
 import { Role } from '../../../shared/models/role.model';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { translatePermissionLabel } from '../../../shared/utils/permission-labels';
 import { RoleFormComponent } from './role-form/role-form.component';
@@ -26,6 +27,7 @@ import { RoleFormComponent } from './role-form/role-form.component';
 export class RolesListComponent {
   private readonly rolesService = inject(RolesService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   protected readonly auth = inject(AuthService);
 
   protected readonly roles = signal<Role[]>([]);
@@ -70,5 +72,29 @@ export class RolesListComponent {
 
   protected onFormSaved(): void {
     this.loadRoles();
+  }
+
+  protected confirmDelete(role: Role): void {
+    this.confirmDialogService.confirm({
+      header: 'Excluir Perfil',
+      message: `Deseja realmente excluir o perfil "${role.name}"? Esta ação removerá o perfil de todos os usuários associados.`,
+      accept: () => this.deleteRole(role),
+    });
+  }
+
+  private deleteRole(role: Role): void {
+    this.rolesService.deleteRole(role.roleId).subscribe({
+      next: () => {
+        this.loadRoles();
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil excluído com sucesso.' });
+      },
+      error: err => {
+        const body = (err as { error?: { errors?: unknown; error?: string } })?.error;
+        const detail = (Array.isArray(body?.errors) && body.errors.length > 0)
+          ? String(body.errors[0])
+          : (body?.error ?? 'Não foi possível excluir o perfil.');
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail });
+      },
+    });
   }
 }

@@ -42,14 +42,26 @@
               <h3 class="font-semibold text-foreground">{{ role.name }}</h3>
             </div>
             @if (auth.hasPermission('Identity.Roles.Manage')) {
-              <p-button
-                icon="pi pi-pencil"
-                [text]="true"
-                [rounded]="true"
-                severity="secondary"
-                size="small"
-                (onClick)="openEdit(role)"
-              />
+              <div class="flex gap-1">
+                <p-button
+                  icon="pi pi-pencil"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="secondary"
+                  size="small"
+                  [attr.aria-label]="'Editar ' + role.name"
+                  (onClick)="openEdit(role)"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="danger"
+                  size="small"
+                  [attr.aria-label]="'Excluir ' + role.name"
+                  (onClick)="confirmDelete(role)"
+                />
+              </div>
             }
           </div>
           <div class="flex flex-wrap gap-2">

@@ -31,4 +31,8 @@ export class RolesService {
   updateRolePermissions(roleId: string, permissions: string[]): Observable<void> {
     return this.http.put<void>(`${this.base}/${roleId}/permissions`, { permissions });
   }
+
+  deleteRole(roleId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${roleId}`);
+  }
 }
