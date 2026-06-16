@@ -91,19 +91,16 @@
             @if (form.get('research.enabled')?.value) {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label for="positionId" class="text-sm font-medium">Posição no Laboratório <span class="text-red-500">*</span></label>
-                  <p-select
-                    inputId="positionId"
-                    formControlName="positionId"
-                    [options]="positionOptions()"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Selecione a posição"
-                    class="w-full"
-                    styleClass="w-full"
-                  />
-                  @if (form.get('research.positionId')?.errors?.['required'] && form.get('research.positionId')?.touched) {
-                    <span class="text-xs text-red-500">Posição é obrigatória.</span>
+                  <span class="text-sm font-medium">Posição no Laboratório</span>
+                  @if (hasExistingResearch()) {
+                    <p class="py-2 px-3 rounded border border-surface-200 bg-surface-50 text-sm">
+                      {{ currentPositionName() ?? '—' }}
+                    </p>
+                    <span class="text-xs text-muted-foreground">Gerenciada pelos administradores.</span>
+                  } @else {
+                    <p class="py-2 px-3 rounded border border-surface-200 bg-surface-50 text-sm text-muted-foreground">
+                      Será atribuída por um administrador.
+                    </p>
                   }
                 </div>
 

@@ -46,6 +46,23 @@ export interface UpdateUserRequest {
   roleIds: string[];
 }
 
+export interface UpdateProfileResearchData {
+  degreeLevel: string;
+  fieldOfStudy: string;
+  lattesUrl?: string | null;
+  citationName?: string | null;
+  displayName?: string | null;
+}
+
+export interface UpdateProfileUserInfo {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  emergencyContactName: string | null;
+  emergencyContactNumber: string | null;
+  researchData: UpdateProfileResearchData | null;
+}
+
 export interface UpdateProfileRequest {
-  userData: UserInfo;
+  userData: UpdateProfileUserInfo;
 }

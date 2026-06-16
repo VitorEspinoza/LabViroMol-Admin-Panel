@@ -1,4 +1,4 @@
-import { Component, inject, model, signal } from '@angular/core';
+import { Component, computed, inject, model, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
@@ -10,7 +10,7 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
 import { AuthService } from '../../../auth/auth.service';
-import { UserInfo, UpdateProfileRequest, ResearchRegistrationData } from '../../../../shared/models/user.model';
+import { UpdateProfileRequest, UpdateProfileUserInfo, ResearchRegistrationData } from '../../../../shared/models/user.model';
 import { DegreeLevel } from '../../../../shared/models/research.model';
 import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.directive';
 import { PositionsService } from '../../../../features/research/positions/positions.service';
@@ -38,6 +38,13 @@ export class MyAccountComponent {
   protected readonly loading = signal(false);
   protected readonly positionOptions = signal<{ label: string; value: string }[]>([]);
   protected readonly degreeLevelOptions = DEGREE_LEVEL_OPTIONS;
+  protected readonly hasExistingResearch = signal(false);
+  private readonly existingPositionId = signal<string | null>(null);
+  protected readonly currentPositionName = computed(() => {
+    const id = this.existingPositionId();
+    if (!id) return null;
+    return this.positionOptions().find(p => p.value === id)?.label ?? null;
+  });
 
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -47,7 +54,6 @@ export class MyAccountComponent {
     emergencyContactNumber: [''],
     research: this.fb.nonNullable.group({
       enabled: [false],
-      positionId: [''],
       degreeLevel: this.fb.nonNullable.control<DegreeLevel | ''>(''),
       fieldOfStudy: [''],
       lattesUrl: [''],
@@ -67,7 +73,7 @@ export class MyAccountComponent {
 
   private applyResearchValidators(enabled: boolean): void {
     const research = this.form.controls.research.controls;
-    (['positionId', 'degreeLevel', 'fieldOfStudy'] as const).forEach(field => {
+    (['degreeLevel', 'fieldOfStudy'] as const).forEach(field => {
       const control = research[field];
       if (enabled) control.setValidators(Validators.required);
       else control.clearValidators();
@@ -112,9 +118,10 @@ export class MyAccountComponent {
 
   private patchResearchData(researchData: ResearchRegistrationData | null): void {
     const research = this.form.controls.research;
+    this.hasExistingResearch.set(!!researchData);
+    this.existingPositionId.set(researchData?.positionId ?? null);
     research.reset({
       enabled: false,
-      positionId: '',
       degreeLevel: '',
       fieldOfStudy: '',
       lattesUrl: '',
@@ -125,7 +132,6 @@ export class MyAccountComponent {
     if (researchData) {
       research.patchValue({
         enabled: true,
-        positionId: researchData.positionId,
         degreeLevel: researchData.degreeLevel as DegreeLevel,
         fieldOfStudy: researchData.fieldOfStudy,
         lattesUrl: researchData.lattesUrl ?? '',
@@ -143,9 +149,8 @@ export class MyAccountComponent {
 
     const value = this.form.getRawValue();
 
-    const researchData: ResearchRegistrationData | null = value.research.enabled
+    const researchData = value.research.enabled
       ? {
-          positionId: value.research.positionId,
           degreeLevel: value.research.degreeLevel as DegreeLevel,
           fieldOfStudy: value.research.fieldOfStudy,
           lattesUrl: value.research.lattesUrl || null,
@@ -154,7 +159,7 @@ export class MyAccountComponent {
         }
       : null;
 
-    const userData: UserInfo = {
+    const userData: UpdateProfileUserInfo = {
       firstName: value.firstName,
       lastName: value.lastName,
       phoneNumber: value.phoneNumber || null,
