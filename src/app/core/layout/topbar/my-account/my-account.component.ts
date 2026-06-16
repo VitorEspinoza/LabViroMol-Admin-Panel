@@ -15,6 +15,7 @@ import { DegreeLevel } from '../../../../shared/models/research.model';
 import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.directive';
 import { PositionsService } from '../../../../features/research/positions/positions.service';
 import { DEGREE_LEVEL_OPTIONS } from '../../../../shared/utils/degree-level';
+import { differentFromUserPhone } from '../../../../shared/validators/phone.validators';
 
 @Component({
   selector: 'app-my-account',
@@ -60,7 +61,7 @@ export class MyAccountComponent {
       citationName: [''],
       displayName: [''],
     }),
-  });
+  }, { validators: differentFromUserPhone });
 
   constructor() {
     this.form.controls.research.controls.enabled.valueChanges

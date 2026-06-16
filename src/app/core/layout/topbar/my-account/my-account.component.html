@@ -74,6 +74,12 @@
                 placeholder="(11) 91234-5678"
                 class="w-full"
               />
+              @if (form.errors?.['samePhone'] && (form.get('emergencyContactNumber')?.dirty || form.get('phoneNumber')?.dirty)) {
+                <span class="text-xs text-red-500">O contato de emergência não pode ter o mesmo número que o usuário.</span>
+              }
+              @if (form.get('emergencyContactNumber')?.errors?.['serverError']) {
+                <span class="text-xs text-red-500">{{ form.get('emergencyContactNumber')?.errors?.['serverError'] }}</span>
+              }
             </div>
 
           </div>

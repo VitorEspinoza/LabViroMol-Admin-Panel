@@ -19,6 +19,7 @@ import { PhoneMaskDirective } from '../../../../shared/directives/phone-mask.dir
 import { AuthService } from '../../../../core/auth/auth.service';
 import { PositionsService } from '../../../research/positions/positions.service';
 import { DEGREE_LEVEL_OPTIONS } from '../../../../shared/utils/degree-level';
+import { differentFromUserPhone } from '../../../../shared/validators/phone.validators';
 
 @Component({
   selector: 'app-user-form',
@@ -72,7 +73,7 @@ export class UserFormComponent {
       citationName: [''],
       displayName: [''],
     }),
-  });
+  }, { validators: differentFromUserPhone });
 
   constructor() {
     this.form.controls.research.controls.enabled.valueChanges
