@@ -77,6 +77,7 @@
                       [options]="memberRoleOptions"
                       optionLabel="label"
                       optionValue="value"
+                      appendTo="body"
                       (onChange)="onChangeMemberRole(member.researcherId, $event.value)"
                     />
                   } @else {
@@ -128,6 +129,7 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Selecione o pesquisador"
+        appendTo="body"
         class="w-full"
         styleClass="w-full"
       />
@@ -144,6 +146,7 @@
         [options]="memberRoleOptions"
         optionLabel="label"
         optionValue="value"
+        appendTo="body"
         class="w-full"
         styleClass="w-full"
       />
@@ -176,6 +179,7 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Selecione o novo líder"
+        appendTo="body"
         class="w-full"
         styleClass="w-full"
       />
