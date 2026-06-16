@@ -24,8 +24,8 @@ export class RolesService {
     return this.http.get<ApiRole[]>(this.base).pipe(map(roles => roles.map(mapRole)));
   }
 
-  createRole(body: CreateRoleRequest): Observable<Role> {
-    return this.http.post<ApiRole>(this.base, body).pipe(map(mapRole));
+  createRole(body: CreateRoleRequest): Observable<void> {
+    return this.http.post<void>(this.base, body);
   }
 
   updateRolePermissions(roleId: string, permissions: string[]): Observable<void> {
