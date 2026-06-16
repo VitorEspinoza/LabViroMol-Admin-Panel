@@ -3,12 +3,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Message } from 'primeng/message';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, Button, InputText, Message],
+  imports: [ReactiveFormsModule, RouterLink, Button, InputText],
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {

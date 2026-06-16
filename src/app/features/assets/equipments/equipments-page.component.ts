@@ -17,7 +17,7 @@ export class EquipmentsPageComponent {
   private readonly equipmentsList = viewChild(EquipmentsListComponent);
   private readonly maintenanceList = viewChild(MaintenanceListComponent);
 
-  protected onTabChange(event: { value: string }): void {
+  protected onTabChange(event: any): void {
     if (event.value === 'equipments') {
       this.equipmentsList()?.loadEquipments();
     } else if (event.value === 'maintenance') {
