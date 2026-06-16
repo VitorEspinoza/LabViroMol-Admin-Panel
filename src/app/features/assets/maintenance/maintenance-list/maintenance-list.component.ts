@@ -68,7 +68,7 @@ export class MaintenanceListComponent {
     this.searchSubject.next((event.target as HTMLInputElement).value);
   }
 
-  protected loadRequests(event?: TableLazyLoadEvent): void {
+  loadRequests(event?: TableLazyLoadEvent): void {
     const first = event?.first ?? this.first();
     const size = event?.rows ?? this.rows();
     const page = Math.floor(first / size) + 1;

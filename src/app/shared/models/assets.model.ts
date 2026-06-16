@@ -30,7 +30,6 @@ export interface UpdateEquipmentRequest {
   name: string;
   brand: string;
   model: string;
-  code: string;
   description: string;
   location: string | null;
 }

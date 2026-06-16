@@ -4,7 +4,7 @@
     subtitle="Gerencie o inventário de equipamentos e as solicitações de manutenção."
   />
 
-  <p-tabs value="equipments" [lazy]="true">
+  <p-tabs value="equipments" [lazy]="true" (onChange)="onTabChange($event)">
     <p-tablist>
       <p-tab value="equipments">Equipamentos</p-tab>
       @if (auth.hasPermission('Assets.Maintenance.View')) {

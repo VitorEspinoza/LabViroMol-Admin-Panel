@@ -56,6 +56,12 @@ export class EquipmentFormComponent {
       description: equipment?.description ?? '',
     });
 
+    if (equipment) {
+      this.form.get('code')?.disable();
+    } else {
+      this.form.get('code')?.enable();
+    }
+
     this.pendingImageFile.set(null);
     if (this.objectUrl) {
       URL.revokeObjectURL(this.objectUrl);
@@ -107,7 +113,6 @@ export class EquipmentFormComponent {
         name: value.name,
         brand: value.brand,
         model: value.model,
-        code: value.code,
         description: value.description,
         location: value.location || null,
       };

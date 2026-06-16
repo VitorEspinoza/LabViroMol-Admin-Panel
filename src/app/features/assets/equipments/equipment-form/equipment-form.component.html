@@ -66,8 +66,14 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="code" class="text-sm font-medium">Código / Patrimônio <span class="text-red-500">*</span></label>
+        <label for="code" class="text-sm font-medium">
+          Código / Patrimônio
+          @if (!isEditing()) { <span class="text-red-500">*</span> }
+        </label>
         <input pInputText id="code" formControlName="code" class="w-full font-mono" />
+        @if (isEditing()) {
+          <span class="text-xs text-muted-foreground">O código de patrimônio não pode ser alterado após o cadastro.</span>
+        }
         @if (form.get('code')?.errors?.['required'] && form.get('code')?.touched) {
           <span class="text-xs text-red-500">Código é obrigatório.</span>
         }

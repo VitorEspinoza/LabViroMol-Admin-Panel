@@ -75,7 +75,7 @@ export class EquipmentsListComponent {
     this.searchSubject.next((event.target as HTMLInputElement).value);
   }
 
-  protected loadEquipments(event?: TableLazyLoadEvent): void {
+  loadEquipments(event?: TableLazyLoadEvent): void {
     const first = event?.first ?? this.first();
     const size = event?.rows ?? this.rows();
     const page = Math.floor(first / size) + 1;

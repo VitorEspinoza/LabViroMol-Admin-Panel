@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
 
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -13,4 +13,15 @@ import { MaintenanceListComponent } from '../maintenance/maintenance-list/mainte
 })
 export class EquipmentsPageComponent {
   protected readonly auth = inject(AuthService);
+
+  private readonly equipmentsList = viewChild(EquipmentsListComponent);
+  private readonly maintenanceList = viewChild(MaintenanceListComponent);
+
+  protected onTabChange(event: { value: string }): void {
+    if (event.value === 'equipments') {
+      this.equipmentsList()?.loadEquipments();
+    } else if (event.value === 'maintenance') {
+      this.maintenanceList()?.loadRequests();
+    }
+  }
 }
