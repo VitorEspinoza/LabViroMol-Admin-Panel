@@ -12,6 +12,8 @@ interface ApiUserSummary {
   email: string;
   isActive: boolean;
   roles: string[];
+  emergencyContactName: string | null;
+  emergencyContactNumber: string | null;
 }
 
 interface ApiUserProfile {
@@ -35,6 +37,8 @@ function mapUserSummary(api: ApiUserSummary): User {
     email: api.email,
     isActive: api.isActive,
     roles: api.roles,
+    emergencyContactName: api.emergencyContactName,
+    emergencyContactNumber: api.emergencyContactNumber,
   };
 }
 

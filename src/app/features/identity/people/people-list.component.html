@@ -55,7 +55,7 @@
         </td>
         <td>{{ user.email }}</td>
         <td class="hidden md:table-cell">
-          <span class="font-mono text-sm">{{ user.emergencyContactNumber ?? '—' }}</span>
+          <span class="font-mono text-sm">{{ user.emergencyContactNumber | phone }}</span>
         </td>
         <td class="hidden md:table-cell">{{ user.emergencyContactName ?? '—' }}</td>
         <td>

@@ -23,6 +23,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { UserFormComponent } from './user-form/user-form.component';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
+import { PhonePipe } from '../../../shared/pipes/phone.pipe';
 
 @Component({
   selector: 'app-people-list',
@@ -32,6 +33,7 @@ import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
     PageHeaderComponent,
     UserFormComponent,
     DataTableContainerComponent,
+    PhonePipe,
   ],
   templateUrl: './people-list.component.html',
   providers: [MessageService],
