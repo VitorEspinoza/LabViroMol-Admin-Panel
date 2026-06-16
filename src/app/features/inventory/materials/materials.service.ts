@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.model';
-import { CreatedResponse, CreateMaterialRequest, Material, MaterialUnit, UpdateMaterialRequest } from '../../../shared/models/inventory.model';
+import { AddStockEntryRequest, CreatedResponse, CreateMaterialRequest, Material, MaterialUnit, UpdateMaterialRequest } from '../../../shared/models/inventory.model';
 
 // Shape retornado pela API (GET /api/inventory/materials e /materials/{id})
 interface MaterialApiResponse {
@@ -57,5 +57,9 @@ export class MaterialsService {
 
   updateMaterial(id: string, body: UpdateMaterialRequest): Observable<void> {
     return this.http.put<void>(`${this.base}/${id}`, body);
+  }
+
+  addStockEntry(materialId: string, body: AddStockEntryRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/${materialId}/add-stock`, body);
   }
 }

@@ -34,6 +34,12 @@ export interface UpdateMaterialRequest {
 
 // Operações de Estoque
 
+// POST /api/inventory/materials/{id}/add-stock — entrada avulsa de estoque
+export interface AddStockEntryRequest {
+  quantity: number;
+  reason: string;
+}
+
 // POST /api/inventory/materials/{id}/add-stock — entrada manual de estoque
 export interface StockExceptionRequest {
   quantity: number;

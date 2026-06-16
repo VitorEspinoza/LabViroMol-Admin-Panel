@@ -1,0 +1,77 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [header]="'Entrada Avulsa — ' + (material()?.name ?? '')"
+  [modal]="true"
+  [closable]="true"
+  appendTo="body"
+  [style]="{ width: '95vw', maxWidth: '440px' }"
+  (onShow)="onDialogShow()"
+>
+  <form [formGroup]="form" novalidate>
+    <div class="flex flex-col gap-4 py-2">
+
+      <div class="flex flex-col gap-1">
+        <label for="entryQuantity" class="text-sm font-medium">
+          Quantidade <span class="text-red-500">*</span>
+        </label>
+        <p-inputnumber
+          inputId="entryQuantity"
+          formControlName="quantity"
+          [min]="0.001"
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          decrementButtonIcon="pi pi-minus"
+          incrementButtonIcon="pi pi-plus"
+          class="w-full"
+          styleClass="w-full"
+        />
+        @if (form.get('quantity')?.errors?.['required'] && form.get('quantity')?.touched) {
+          <span class="text-xs text-red-500">Quantidade é obrigatória.</span>
+        }
+        @if (form.get('quantity')?.errors?.['min'] && form.get('quantity')?.touched) {
+          <span class="text-xs text-red-500">Quantidade deve ser maior que zero.</span>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="entryReason" class="text-sm font-medium">
+          Justificativa <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          pTextarea
+          id="entryReason"
+          formControlName="reason"
+          rows="3"
+          placeholder="Ex: Material doado pela equipe do hospital"
+          class="w-full"
+        ></textarea>
+        @if (form.get('reason')?.errors?.['required'] && form.get('reason')?.touched) {
+          <span class="text-xs text-red-500">Justificativa é obrigatória.</span>
+        }
+        @if (form.get('reason')?.errors?.['minlength'] && form.get('reason')?.touched) {
+          <span class="text-xs text-red-500">Mínimo de 10 caracteres.</span>
+        }
+      </div>
+
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Registrar Entrada"
+        icon="pi pi-arrow-up"
+        [loading]="saving()"
+        (onClick)="onSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

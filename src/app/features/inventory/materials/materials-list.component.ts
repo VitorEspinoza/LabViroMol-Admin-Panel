@@ -20,6 +20,7 @@ import { MaterialFormComponent } from './material-form/material-form.component';
 import { MaterialUnitLabelPipe } from './material-unit-label.pipe';
 import { DataTableContainerComponent } from '../../../shared/components/data-table-container/data-table-container.component';
 import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
+import { StockEntryDialogComponent } from './stock-entry-dialog/stock-entry-dialog.component';
 
 @Component({
   selector: 'app-materials-list',
@@ -27,6 +28,7 @@ import { TableSortCycle } from '../../../shared/utils/table-sort-cycle';
     FormsModule,
     TableModule, Button, Toast, InputText, IconField, InputIcon,
     PageHeaderComponent, MaterialFormComponent, MaterialUnitLabelPipe, DataTableContainerComponent,
+    StockEntryDialogComponent,
   ],
   templateUrl: './materials-list.component.html',
   providers: [MessageService],
@@ -43,6 +45,8 @@ export class MaterialsListComponent {
   protected readonly totalRecords = signal(0);
   protected readonly dialogVisible = signal(false);
   protected readonly selectedMaterial = signal<Material | null>(null);
+  protected readonly stockEntryVisible = signal(false);
+  protected readonly stockEntryMaterial = signal<Material | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly first = signal(0);
   protected readonly rows = signal(10);
@@ -130,6 +134,15 @@ export class MaterialsListComponent {
   }
 
   protected onFormSaved(): void {
+    this.loadMaterials();
+  }
+
+  protected openStockEntry(material: Material): void {
+    this.stockEntryMaterial.set(material);
+    this.stockEntryVisible.set(true);
+  }
+
+  protected onStockEntrySaved(): void {
     this.loadMaterials();
   }
 }

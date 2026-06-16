@@ -89,6 +89,18 @@
               (onClick)="openEdit(material)"
             />
           }
+          @if (auth.hasPermission('Inventory.Stock.Manage')) {
+            <p-button
+              icon="pi pi-arrow-up"
+              [text]="true"
+              [rounded]="true"
+              severity="success"
+              size="small"
+              pTooltip="Entrada avulsa"
+              tooltipPosition="top"
+              (onClick)="openStockEntry(material)"
+            />
+          }
         </td>
       </tr>
     </ng-template>
@@ -108,4 +120,10 @@
   [(visible)]="dialogVisible"
   [material]="selectedMaterial()"
   (saved)="onFormSaved()"
+/>
+
+<app-stock-entry-dialog
+  [(visible)]="stockEntryVisible"
+  [material]="stockEntryMaterial()"
+  (saved)="onStockEntrySaved()"
 />
