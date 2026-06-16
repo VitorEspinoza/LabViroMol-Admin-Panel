@@ -84,15 +84,15 @@ describe('KitsService', () => {
       materials: [{ id: 'mat1', quantity: 2 }],
     };
 
-    let response: { id: string } | undefined;
-    service.createKit(body).subscribe(res => (response = res));
+    let completed = false;
+    service.createKit(body).subscribe(() => (completed = true));
 
     const req = http.expectOne('http://localhost:5085/api/inventory/kits');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(body);
-    req.flush({ id: 'kit-novo' });
+    req.flush(null, { status: 201, statusText: 'Created' });
 
-    expect(response).toEqual({ id: 'kit-novo' });
+    expect(completed).toBe(true);
   });
 
   it('createKit — propaga erro 400 (validação)', () => {

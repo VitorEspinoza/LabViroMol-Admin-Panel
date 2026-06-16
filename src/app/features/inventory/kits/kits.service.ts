@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../../shared/models/pagination.model';
-import { CreatedResponse, CreateKitRequest, Kit, KitItem, MaterialUnit, UpdateKitRequest } from '../../../shared/models/inventory.model';
+import { CreateKitRequest, Kit, KitItem, MaterialUnit, UpdateKitRequest } from '../../../shared/models/inventory.model';
 
 // Shape retornado pela API (GET /api/inventory/kits e /kits/{id})
 interface KitItemApiResponse {
@@ -58,8 +58,8 @@ export class KitsService {
     return this.http.get<KitApiResponse>(`${this.base}/${id}`).pipe(map(toKit));
   }
 
-  createKit(body: CreateKitRequest): Observable<CreatedResponse> {
-    return this.http.post<CreatedResponse>(this.base, body);
+  createKit(body: CreateKitRequest): Observable<void> {
+    return this.http.post<void>(this.base, body);
   }
 
   updateKit(id: string, body: UpdateKitRequest): Observable<void> {
