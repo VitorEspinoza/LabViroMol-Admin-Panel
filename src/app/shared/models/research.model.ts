@@ -62,6 +62,11 @@ export interface Project {
   partnerName: string;
   members: ProjectMember[];
   createdAt: string;
+  canChangeStatus: boolean;
+  canTransferLeadership: boolean;
+  canEditMembers: boolean;
+  canChangeMemberRole: boolean;
+  canRemoveMembers: boolean;
 }
 
 export interface ProjectSummary {

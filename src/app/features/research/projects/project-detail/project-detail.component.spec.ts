@@ -26,6 +26,11 @@ const makeProject = (overrides: Partial<Project> = {}): Project => ({
     { researcherId: 'r2', researcherName: 'Carlos Souza', role: 'Collaborator' },
   ],
   createdAt: '2026-01-10T00:00:00Z',
+  canChangeStatus: true,
+  canTransferLeadership: true,
+  canEditMembers: true,
+  canChangeMemberRole: true,
+  canRemoveMembers: true,
   ...overrides,
 });
 
@@ -162,9 +167,13 @@ describe('ProjectDetailComponent', () => {
       expect(compiled.textContent).not.toContain('Cancelar Projeto');
     });
 
-    it('oculta os botões de gestão quando o usuário não possui Research.Projects.Manage', async () => {
-      authServiceMock.hasPermission.mockReturnValue(false);
-      await setup(makeProject({ status: 'Planned' }));
+    it('oculta os botões de gestão quando o backend indica sem permissão', async () => {
+      await setup(makeProject({
+        status: 'Planned',
+        canChangeStatus: false,
+        canTransferLeadership: false,
+        canEditMembers: false,
+      }));
       (component as any).visible.set(true);
       fixture.detectChanges();
 

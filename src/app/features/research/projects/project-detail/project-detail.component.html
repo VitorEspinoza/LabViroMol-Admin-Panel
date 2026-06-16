@@ -37,19 +37,23 @@
         </div>
       </div>
 
-      @if (canManage()) {
+      @if (canChangeStatus() || canTransferLeadership() || canEditMembers()) {
         <div class="flex flex-wrap gap-2">
-          @if (project.status === 'Planned') {
+          @if (canChangeStatus() && project.status === 'Planned') {
             <p-button label="Iniciar Projeto" icon="pi pi-play" [loading]="processing()" (onClick)="startProject()" />
           }
-          @if (project.status === 'InProgress') {
+          @if (canChangeStatus() && project.status === 'InProgress') {
             <p-button label="Concluir Projeto" icon="pi pi-check" severity="success" [loading]="processing()" (onClick)="confirmComplete()" />
           }
-          @if (project.status === 'Planned' || project.status === 'InProgress') {
+          @if (canChangeStatus() && (project.status === 'Planned' || project.status === 'InProgress')) {
             <p-button label="Cancelar Projeto" icon="pi pi-times" severity="danger" [outlined]="true" [loading]="processing()" (onClick)="confirmCancel()" />
           }
-          <p-button label="Transferir Liderança" icon="pi pi-user-edit" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openTransfer()" />
-          <p-button label="Adicionar Membro" icon="pi pi-user-plus" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openAddMember()" />
+          @if (canTransferLeadership()) {
+            <p-button label="Transferir Liderança" icon="pi pi-user-edit" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openTransfer()" />
+          }
+          @if (canEditMembers()) {
+            <p-button label="Adicionar Membro" icon="pi pi-user-plus" severity="secondary" [outlined]="true" [loading]="processing()" (onClick)="openAddMember()" />
+          }
         </div>
       }
 
@@ -60,7 +64,7 @@
             <tr class="text-left text-muted-foreground border-b">
               <th class="py-2">Nome</th>
               <th class="py-2">Função</th>
-              @if (canManage()) {
+              @if (canChangeMemberRole() || canRemoveMembers()) {
                 <th class="py-2">Ações</th>
               }
             </tr>
@@ -70,7 +74,7 @@
               <tr class="border-b last:border-0">
                 <td class="py-2">{{ member.researcherName }}</td>
                 <td class="py-2">
-                  @if (canManage() && member.role !== 'ResearchLead') {
+                  @if (canChangeMemberRole() && member.role !== 'ResearchLead') {
                     <p-select
                       [ngModel]="member.role"
                       [ngModelOptions]="{ standalone: true }"
@@ -84,9 +88,9 @@
                     {{ roleLabel(member.role) }}
                   }
                 </td>
-                @if (canManage()) {
+                @if (canChangeMemberRole() || canRemoveMembers()) {
                   <td class="py-2">
-                    @if (member.role !== 'ResearchLead') {
+                    @if (canRemoveMembers() && member.role !== 'ResearchLead') {
                       <p-button
                         icon="pi pi-trash"
                         [text]="true"

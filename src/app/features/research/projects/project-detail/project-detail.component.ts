@@ -50,7 +50,11 @@ export class ProjectDetailComponent {
   protected readonly roleOptions = PROJECT_ROLE_OPTIONS;
   protected readonly memberRoleOptions = PROJECT_ROLE_OPTIONS.filter(o => o.value !== 'ResearchLead');
 
-  protected readonly canManage = computed(() => this.authService.hasPermission('Research.Projects.Manage'));
+  protected readonly canChangeStatus = computed(() => this.project()?.canChangeStatus ?? false);
+  protected readonly canTransferLeadership = computed(() => this.project()?.canTransferLeadership ?? false);
+  protected readonly canEditMembers = computed(() => this.project()?.canEditMembers ?? false);
+  protected readonly canChangeMemberRole = computed(() => this.project()?.canChangeMemberRole ?? false);
+  protected readonly canRemoveMembers = computed(() => this.project()?.canRemoveMembers ?? false);
 
   protected readonly leadMemberName = computed(
     () => this.project()?.members.find(m => m.role === 'ResearchLead')?.researcherName ?? '—',

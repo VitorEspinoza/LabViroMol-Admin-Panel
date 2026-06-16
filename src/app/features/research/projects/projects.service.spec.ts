@@ -32,6 +32,11 @@ const mockProject: Project = {
   partnerName: 'Instituto Butantan',
   members: [{ researcherId: 'r1', researcherName: 'Ana Silva', role: 'ResearchLead' }],
   createdAt: '2024-01-01T00:00:00Z',
+  canChangeStatus: true,
+  canTransferLeadership: true,
+  canEditMembers: true,
+  canChangeMemberRole: true,
+  canRemoveMembers: true,
 };
 
 describe('ProjectsService', () => {
