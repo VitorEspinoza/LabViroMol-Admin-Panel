@@ -1,0 +1,18 @@
+title = "gitleaks config — Admin Panel"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist de valores de teste legítimos (e2e) e mocks"
+paths = [
+  '''e2e/\.env\.example''',
+  '''e2e/mocks/.*''',
+  '''e2e/data/.*''',
+]
+
+regexes = [
+  '''fake-token''',
+  '''mock-token''',
+  '''test-token''',
+]

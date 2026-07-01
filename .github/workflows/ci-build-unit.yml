@@ -1,0 +1,75 @@
+name: CI - Build, Lint, Typecheck, Unit
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "agents/**"
+  push:
+    branches:
+      - "feat/**"
+      - "fix/**"
+      - "refactor/**"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "agents/**"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci-required:
+    name: CI required (sentinel)
+    runs-on: ubuntu-latest
+    needs: [build-test]
+    if: always()
+    steps:
+      - name: Check build-test result
+        run: |
+          if [ "${{ needs.build-test.result }}" != "success" ] && [ "${{ needs.build-test.result }}" != "skipped" ]; then
+            echo "build-test failed: ${{ needs.build-test.result }}"
+            exit 1
+          fi
+
+  build-test:
+    name: Build + lint + typecheck + unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint / format check
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (production)
+        run: npx ng build --configuration production
+
+      - name: Unit tests
+        run: npx ng test --watch=false --coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14

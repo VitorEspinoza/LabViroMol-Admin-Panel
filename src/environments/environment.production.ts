@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.labviromol.example.com',
+  apiUrl: '',
   version: '0.1.0',
 };

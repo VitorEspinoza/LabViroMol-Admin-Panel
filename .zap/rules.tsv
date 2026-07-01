@@ -1,0 +1,5 @@
+10202	IGNORE	(Absence of Anti-CSRF Tokens) — SPA estático sem forms server-side; CSRF é tratado no backend
+10038	WARN	(Content Security Policy) — CSP idealmente no gateway (backend); nginx.conf local pode reforçar quando headers de borda forem definidos
+10035	WARN	(Strict-Transport-Security) — HSTS é responsabilidade do gateway/TLS termination (backend), não deste container nginx interno
+10021	WARN	(X-Content-Type-Options) — revisar se nginx.conf local deve setar ou se fica a cargo do gateway
+10020	WARN	(X-Frame-Options) — revisar se nginx.conf local deve setar ou se fica a cargo do gateway

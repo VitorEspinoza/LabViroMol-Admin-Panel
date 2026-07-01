@@ -1,0 +1,14 @@
+name: 'CodeQL config — Admin Panel'
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  - 'node_modules/**'
+  - 'dist/**'
+  - 'coverage/**'
+  - 'e2e/**'
+  - '**/*.spec.ts'
+  - 'plans/**'
+  - 'agents/**'
+  - 'docs/**'
